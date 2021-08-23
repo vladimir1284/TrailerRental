@@ -27,24 +27,29 @@
         <form method = "POST">
             {% csrf_token %}
             <fieldset>
-            <legend><span class="number">1</span> Lessee Info</legend>
-            {% for field in form %}
-                {% if field.label == 'lessee_info' %}
+                <legend><span class="number">1</span> Lessee Info</legend>
+                {% for field in form.lessee_info_fields %}
+                        <label for="id_{{ field.name }}">{{ field.label }}</label>
+                        {{ field }}
+                {% endfor %}
+                
+                <legend><span class="number">2</span> Equipment Description</legend>
+                {% for field in form.equipment_description_fields %}
+                    <label for="id_{{ field.name }}">{{ field.label }}</label>
                     {{ field }}
-                {% endif %}
-            {% endfor %}
-            <legend><span class="number">2</span> Equipment Description</legend>
-            {% for field in form %}
-                {% if field.label == 'equipment_description' %}
+                {% endfor %}
+                
+                <legend><span class="number">3</span> Equipment Inspection</legend>
+                {% for field in form.equipment_inspection_fields %}
+                    <label for="id_{{ field.name }}">{{ field.label }}</label>
                     {{ field }}
-                {% endif %}
-            {% endfor %}
-            <legend><span class="number">3</span> Contract Terms</legend>
-            {% for field in form %}
-                {% if field.label == 'contract_terms' %}
+                {% endfor %}
+
+                <legend><span class="number">4</span> Contract Terms</legend>
+                {% for field in form.contract_terms_fields %}
+                    <label for="id_{{ field.name }}">{{ field.label }}</label>
                     {{ field }}
-                {% endif %}
-            {% endfor %}
+                {% endfor %}
             </fieldset>
             <input type="submit" class="btn btn-primary" value="Create" />
         </form>
