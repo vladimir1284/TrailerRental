@@ -3,10 +3,173 @@
 {% load static %}
 
 {% block head %}
-
+    <div class="hidden">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16">
+      <defs>
+        <symbol id="edit-icon" viewbox="0 0 16 16">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+			  <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+			  <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+			</svg>
+        </symbol>
+      </defs>
+      <!-- to make the circle-arrow-left.svg file
+           also usable as image: -->
+      <use href="#edit-icon"/>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16">
+      <defs>
+        <symbol id="share-icon" viewbox="0 0 16 16">
+           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-share" viewBox="0 0 16 16">
+            <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/>
+            </svg>
+        </symbol>
+      </defs>
+      <!-- to make the circle-arrow-left.svg file
+           also usable as image: -->
+      <use href="#share-icon"/>
+    </svg>
+    </div>
+    <style>
+    .btn-secondary {
+        padding: 2px 6px 2px 6px;
+    }
+    .hidden{
+        visibility: hidden;
+    }
+    </style>
+    
+    <script>
+       function myFunction() {
+          /* Get the text field */
+          let imgs =  document.getElementsByClassName("d-block");
+        
+          /* Select the text field */
+          let urls = "";
+          
+          for (let item of imgs) {
+			    urls += item.src + "\n";
+		  }
+          
+          console.log(urls);
+        
+          /* Copy the text inside the text field */
+          navigator.clipboard.writeText(urls);
+          
+          /* Alert the copied text */
+          alert("Gallery copied to clipboard");
+        }
+    </script>
 {% endblock %} 
 	
-{% block content %}
-    <h3 class="mt-3">Trailer <b> {{ trailer.name }} </b></h3>    
+{% block content %}    
+    <h3 class="mt-3">Trailer <b> {{ trailer.name }} </b>
+      <a href="../update_trailer/{{ trailer.id }}">
+        <svg width="28" height="28" fill="white" version="2.0">
+            <use href="#edit-icon" />
+        </svg>
+      </a>
+    </h3>    
     <hr class="mt-0 mb-4">
+    
+    <!-- Specifications -->
+    <h4 class="mt-3">Specifications </b></h4>  
+    <hr class="mt-0 mb-4">
+	<div class="row">
+	  <div class="col-6 col-md-5">VIN: <b> {{ trailer.vin }} </b></div>
+	  <div class="col-6 col-md-3">Size: <b> {{ trailer.length }}' </b></div>
+	  <div class="col-6 col-md-4">Type: <b> {{ trailer.type }} </b></div>
+	</div>
+    <div class="row">
+      <div class="col-6 col-md-5">Ramps: <b> {{ trailer.get_ramps_material_display }} </b></div>
+      <div class="col-6 col-md-3">Axles: <b> {{ trailer.number_of_axles }} </b></div>
+      <div class="col-6 col-md-4">Bed: <b> {{ trailer.get_bed_type_display }} </b></div>
+    </div>
+    <div class="row">
+      <div class="col-6 col-md-5">Model: <b> {{ trailer.model }} </b></div>
+      <div class="col-6 col-md-3">Tires: <b> {{ trailer.get_current_tires_condition_display }} </b></div>
+      <div class="col-6 col-md-4">Color: <b> {{ trailer.color }} </b></div>
+    </div>
+
+    <!-- Legal matters -->
+    <h4 class="mt-3">Legal matters </b></h4>  
+    <hr class="mt-0 mb-4">
+    <div class="row">
+        {% load humanize %}
+      <div class="col-6 col-md-5">Tax Price: <b> ${{ trailer.tax_price|intcomma }} </b></div>
+      <div class="col-6 col-md-3">Tax: <b> ${{ tax|intcomma }} </b></div>
+      <div class="col-6 col-md-4">Price: <b> ${{ trailer.price|intcomma }} </b></div>
+    </div>
+    <div class="row">
+      <div class="col-6 col-md-5">Legal owner: <b> {{ trailer.Legal_owner }} </b></div>
+      <div class="col-6 col-md-3">Owner: <b> {{ trailer.owner }} </b></div>
+      <div class="col-6 col-md-4">Plate: <b> {{ trailer.plate }} </b>      
+        {% if trailer.plate_stage == 1 %}
+           (T)
+        {% endif %}
+      </div>
+    </div>
+    <div class="row">
+        <div class="col-6 card">            
+            <div class="card-header">
+		        Title: 
+		        {% if trailer.title_file != "" %}
+		            <a href="../../static/{{ trailer.title_file }}"><b> {{ trailer.title }} </b></a>
+		        {% else %}
+		            <b> {{ trailer.title }} </b>
+		        {% endif %}
+            </div>
+			  <div class="card-body">
+			        {{ trailer.title_note }}
+			  </div>
+        </div>   
+        <div class="col-6 card">     
+            <div class="card-header">
+	            Sticker: 
+	            {% if trailer.title_file != "" %}
+	                <a href="../../static/{{ trailer.sticker_file }}"><b> {{ trailer.sticker }} </b></a>
+	            {% else %}
+	                <b> {{ trailer.sticker }} </b>
+	            {% endif %}             
+            </div>
+		      <div class="card-body">
+		        {{ trailer.sticker_note }}
+		      </div>
+        </div>    
+    </div>    
+    
+    <!-- Gallery -->    
+    <h4 class="mt-3">Gallery </b>
+        <button onclick="myFunction()" class="btn btn-secondary fileinput-upload fileinput-upload-button">
+		    <svg width="20" height="20" fill="white" version="2.0">
+		        <use href="#share-icon" />
+		    </svg>
+	    </button>
+    </h4>  
+    <hr class="mt-0 mb-4">
+    
+    <div id="carouselTrailerPictures" class="carousel slide" data-ride="carousel">
+	  <ol class="carousel-indicators">
+	   {% for img in images %}
+            <li data-target="#carouselTrailerPictures" data-slide-to="{{ forloop.counter0 }}"></li>
+       {% endfor %}
+	  </ol>
+	  <div class="carousel-inner">
+	   {% for img in images %}	       
+		    <div class="carousel-item 
+		    {% if forloop.counter0 == 0 %}
+               active
+            {% endif %} ">
+		      <img class="d-block w-100" src="../../static/{{ img.image }}" alt="Slide">
+		    </div>
+	   {% endfor %}
+	  <a class="carousel-control-prev" href="#carouselTrailerPictures" role="button" data-slide="prev">
+	    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+	    <span class="sr-only">Previous</span>
+	  </a>
+	  <a class="carousel-control-next" href="#carouselTrailerPictures" role="button" data-slide="next">
+	    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+	    <span class="sr-only">Next</span>
+	  </a>
+	</div>
 {% endblock %} 

@@ -16,4 +16,5 @@ class TrailerForm(ModelForm):
         
     year = forms.DateField(input_formats=['%Y',],  
         widget=BootstrapYearPickerInput(attrs={'placeholder': 'Select a year'}))
-    pictures = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple':True}))
+    pictures = forms.FileField(required=False,
+                               widget=forms.ClearableFileInput(attrs={'multiple':True}))
