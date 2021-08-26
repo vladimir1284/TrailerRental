@@ -38,7 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'contracts',
+    'gdstorage',
+    'crispy_forms',
+    'towit',
 ]
 
 MIDDLEWARE = [
@@ -125,3 +127,7 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = "trailer-rental-323614-5eec73be91df.json"
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'

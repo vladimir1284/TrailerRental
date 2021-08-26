@@ -1,18 +1,23 @@
+{% load static %}
 <head>
    <meta charset="utf-8"/>
+   <link rel="stylesheet" type="text/css" href="{% static '/css/contract_form.css' %}">
    <style>
      .bottom-three-left-two {
-	margin-bottom: 3cm;
-	margin-left: 1cm;
+         margin-bottom: 3cm;
+         margin-left: 1cm;
      }
      .bottom-three {
-	margin-bottom: 3cm;	
+          margin-bottom: 3cm;   
      }
      .center {
-	text-align: center;
+          text-align: center;
       }
       p, li {
-	text-align: justify;
+          text-align: justify;
+      }
+      div.break {
+         page-break-before:always;
       }
    </style>
 </head>
@@ -21,20 +26,20 @@
    <p class="center"><strong>EQUIPMENT</strong><strong> LEASE</strong></p>
 
    <p>This Equipment Lease ("this lease") is made effective as
-    of {{ Effective_date }} between Daniel Hernández Duarte and Jose Ariel Casanova ("the Lessors"), 6514 Mohave Ln, Richmond, TX 77469, 
-    and {{ Lessee_name }}, ("the Lessee"), {{ Lessee_address }} and states the agreement of the parties as follows:</p>
+    of {{ data.effective_date|date:'B d, Y' }} between Daniel Hernández Duarte and Jose Ariel Casanova ("the Lessors"), 6514 Mohave Ln, Richmond, TX 77469, 
+    and {{ data.lessee_name }}, ("the Lessee"), {{ data.lessee_address }} and states the agreement of the parties as follows:</p>
    <p><strong>EQUIPMENT SUBJECT TO LEASE</strong>. The Lessor shall lease the equipment listed on the attached exhibit "A".</p>
-   <p><strong>PAYMENT TERMS</strong>. The Lessee shall make {{ Number_of_payments }} payment(s) of ${{ Payment_amount }}. 
+   <p><strong>PAYMENT TERMS</strong>. The Lessee shall make {{ data.number_of_payments }} payment(s) of ${{ data.payment_amount }}. 
    The lease payments shall be due whether or not the Lessee has received notice of payment due.</p>
    <p><strong>SERVICE CHARGE</strong>. If any lease installment is not paid within 7 day(s) after the due date, 
-   the Lessee shall pay to the Lessor a service charge of ${{ Service_charge }} for every week the payment is late.</p>
+   the Lessee shall pay to the Lessor a service charge of ${{ data.service_charge }} for every week the payment is late.</p>
    <p><strong>SECURITY DEPOSIT</strong>. In addition to the Lease payment charge, the Lessee shall pay a security deposit of 
-   ${{ Security_deposit }} at the time that this Lease is signed. Any amount refundable to the Lessee shall 
+   ${{ data.security_deposit }} at the time that this Lease is signed. Any amount refundable to the Lessee shall 
    be paid at the time this Lease is terminated, subject to the option of the Lessor to apply it against Lease charges and damages. 
    This security deposit shall not bear interest.</p>
-   <p><strong>LEASE TERM</strong>. This Lease shall begin on the above effective date and shall terminate on {{ Contract_end_date }}, 
+   <p><strong>LEASE TERM</strong>. This Lease shall begin on the above effective date and shall terminate on {{ data.contract_end_date|date:'%B d, Y' }}, 
    unless otherwise terminated in a manner consistent with the terms of this Lease.</p>
-   <p><strong>LOCATION OF EQUIPMENT</strong>. The equipment shall be located at {{ Location }}, during the Lease term, and shall not be 
+   <p><strong>LOCATION OF EQUIPMENT</strong>. The equipment shall be located at {{ data.location }}, during the Lease term, and shall not be 
    removed from that location without the Lessor prior written consent.</p>
    <p><strong>CARE AND OPERATION OF EQUIPMENT</strong>. The equipment may only be used and operated in a careful and proper manner. 
    Its use must comply with all laws, ordinances, and regulations relating to the possession, use, or maintenance of the equipment, 
@@ -97,31 +102,40 @@
    If mediation is not successful in resolving the entire dispute or is unavailable, 
    any outstanding issues will be submitted to final and binding arbitration under the rules of the American Arbitration Association. 
    The arbitrator's award will be final, and judgment may be entered upon it by any court having proper jurisdiction.</p>
-   <p><strong>SIGNATORIES</strong>. This Lease shall be signed by Daniel Hernández Duarte, Jose Ariel Casanova and {{ Lessee_name }} and shall be effective
+   <p><strong>SIGNATORIES</strong>. This Lease shall be signed by Daniel Hernández Duarte, Jose Ariel Casanova and {{ data.lessee_name }} and shall be effective
     as of the date first above written.</p>
    <p class="bottom-three"><strong>LESSORS</strong>:</p>
 
 
-   <p>By: _____________________________		Date: ____________________</p>
-   <p class="bottom-three-left-two">	Daniel Hernández Duarte</p>
+   <p>By: _____________________________     Date: ____________________</p>
+   <p class="bottom-three-left-two">    Daniel Hernández Duarte</p>
 
 
 
-   <p>By: _____________________________		Date: ____________________</p>
-   <p class="bottom-three-left-two">	Jose Ariel Casanova</p>
+   <p>By: _____________________________     Date: ____________________</p>
+   <p class="bottom-three-left-two">    Jose Ariel Casanova</p>
 
    <p><strong>LESSEE</strong>:</p>
 
 
-   <p>By: ____________________________		Date: ______________________</p>
-   <p class="bottom-three-left-two">	{{ Lessee_name }}</p>
+   <p>By: ____________________________      Date: ______________________</p>
+   <p class="bottom-three-left-two">    {{ data.lessee_name }}</p>
 
 
 
-
+   <div class="break"></div>
    <p class="center"><strong>EXHIBIT A</strong></p>
    <p><strong>Equipment Schedule</strong></p>
-   <p>Equipment Description: {{ Model }} VIN:{{ VIN }}</p>
+   <p>Equipment Description: {{ data.model }} VIN:{{ data.vin }}</p>
    <p>Lease End Purchase Price: Market Price </p>
-   <p>Email: {{ Lessee_email }}</p>
+   <p>Email: {{ data.lessee_email }}</p>
+
+   <div class="form-style-5">
+      <form action="generate_pdf/" method="post">
+         {% csrf_token %}
+         <input type="hidden" name="form" value="{{data}}">
+         <input type="submit" class="btn btn-primary" value="Approve">
+      </form>
+   </div>
+
 </body>

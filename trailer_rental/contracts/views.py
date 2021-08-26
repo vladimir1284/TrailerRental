@@ -4,15 +4,11 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
 import tempfile
-import ast
 from .models import Contract
 
 def generate_pdf(request):
     #Check to see if we are getting a POST request back
     if request.method == "POST":
-        # data = ast.literal_eval(request.POST['form'])
-        # print(type(data))
-        # Get data from previous view
         data_id = int(request.POST['form'])
         data = Contract.objects.get(id=data_id)
         data.accepted = True
@@ -22,19 +18,7 @@ def generate_pdf(request):
 
         """Generate pdf."""
         # Rendered
-        html_string = render_to_string('contracts/Contract_Template.html', 
-                    {'Effective_date' : data.effective_date.date().strftime("%B %d, %Y"),
-                    'Lessee_name' : data.lessee_name,
-                    'Lessee_address' : data.lessee_address,
-                    'Lessee_email' : data.lessee_mail,
-                    'Number_of_payments' : data.number_of_payments,
-                    'Payment_amount' : data.payment_amount,
-                    'Service_charge' : data.service_charge,
-                    'Security_deposit' : data.security_deposit,
-                    'Contract_end_date' : data.contract_end_date.date().strftime("%B %d, %Y"),
-                    'Location' : data.location,
-                    'Model' : data.model,
-                    'VIN' : data.vin})
+        html_string = render_to_string('contracts/Contract_Template.html', {'data': data})
         html = HTML(string=html_string)
         result = html.write_pdf()
 
@@ -64,20 +48,6 @@ def newContract(request):
         if form.is_valid():
             instance = Contract(**form.cleaned_data)
             instance.save()
-            return render(request, 'contracts/Contract_Review.html', 
-                    {'Effective_date' : instance.effective_date.date().strftime("%B %d, %Y"),
-                    'Lessee_name' : instance.lessee_name,
-                    'Lessee_address' : instance.lessee_address,
-                    'Lessee_email' : instance.lessee_mail,
-                    'Number_of_payments' : instance.number_of_payments,
-                    'Payment_amount' : instance.payment_amount,
-                    'Service_charge' : instance.service_charge,
-                    'Security_deposit' : instance.security_deposit,
-                    'Contract_end_date' : instance.contract_end_date.date().strftime("%B %d, %Y"),
-                    'Location' : instance.location,
-                    'Model' : instance.model,
-                    'VIN' : instance.vin,
-                    'data': instance.id
-                    })
+            return render(request, 'contracts/Contract_Review.html', {'data': instance})
 
     return render(request, 'contracts/contract_form.html', {'form': form})
