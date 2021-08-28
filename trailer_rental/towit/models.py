@@ -12,8 +12,8 @@ class UserProfile(models.Model):
     user   = models.OneToOneField(User,
                         on_delete=models.CASCADE,
                         related_name='profile_user')
-    avatar = models.ImageField(upload_to='avatars')
-    # avatar = models.ImageField(upload_to='towit/avatars', storage=gd_storage)
+    # avatar = models.ImageField(upload_to='avatars')
+    avatar = models.ImageField(upload_to='towit/avatars', storage=gd_storage)
     def __str__(self):
         return self.user.get_username()
 
@@ -30,6 +30,12 @@ class TrailerType(models.Model):
         return self.name
     
 class Status(models.Model):
+    name = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return self.name
+    
+class MaintenanceStatus(models.Model):
     name = models.CharField(max_length=50)
     
     def __str__(self):
@@ -100,14 +106,14 @@ class Trailer(models.Model):
     title = models.ForeignKey(Stage,
                             on_delete=models.CASCADE,
                             related_name='title_stage')
-    title_file = models.FileField(upload_to='titles', blank=True)
-    # title_note = models.FileField(upload_to='towit/titles', blank=True, storage=gd_storage)
+    # title_file = models.FileField(upload_to='titles', blank=True)
+    title_file = models.FileField(upload_to='towit/titles', blank=True, storage=gd_storage)
     title_note = models.TextField(blank=True)
     sticker = models.ForeignKey(Stage,
                             on_delete=models.CASCADE,
                             related_name='sticker_stage')
-    sticker_file = models.FileField(upload_to='stickers', blank=True)
-    # sticker_file = models.FileField(upload_to='towit/stickers', blank=True, storage=gd_storage)
+    # sticker_file = models.FileField(upload_to='stickers', blank=True)
+    sticker_file = models.FileField(upload_to='towit/stickers', blank=True, storage=gd_storage)
     sticker_note = models.TextField(blank=True)
     
     def get_absolute_url(self):
@@ -120,8 +126,8 @@ class TrailerPicture(models.Model):
     trailer = models.ForeignKey(Trailer,
                             on_delete=models.CASCADE,
                             related_name='trailer_picture')
-    image = models.FileField(upload_to='pictures')
-    # image = models.FileField(upload_to='towit/pictures', storage=gd_storage)
+    # image = models.FileField(upload_to='pictures')
+    image = models.FileField(upload_to='towit/pictures', storage=gd_storage)
 
 class maintenance(models.Model):
     trailer = models.ForeignKey(Trailer,
@@ -129,7 +135,9 @@ class maintenance(models.Model):
                             related_name='trailer_maintenance')
     date =  models.DateField()
     price = models.IntegerField()
-    description = models.TextField()
+    status = models.ForeignKey(MaintenanceStatus,
+                            on_delete=models.CASCADE,
+                            related_name='maintenance_status')
     comments = models.TextField(blank=True)
     
     def get_absolute_url(self):

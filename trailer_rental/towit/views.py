@@ -4,11 +4,18 @@ from django.views.generic import CreateView, UpdateView
 from .models import Trailer, TrailerPicture, maintenance
 from .forms import TrailerForm, maintenanceForm
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
 
 @login_required
 def trailers(request):
     trailers = Trailer.objects.all()
     return render(request, 'towit/trailer/trailers.html', {'trailers': trailers})
+
+@login_required
+def delete_trailer_image(request, id):
+    img = TrailerPicture.objects.get(id=id)
+    img.delete()
+    return redirect('/towit/trailer/' + str(img.trailer.id))
 
 @login_required
 def trailer_detail(request, id):

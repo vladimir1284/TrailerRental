@@ -4,7 +4,7 @@
 
 {% block head %}
     <style>
-    .btn-secondary {
+    .btn-primary {
         padding: 2px 6px 2px 6px;
     }
     .hidden{
@@ -32,6 +32,21 @@
           /* Alert the copied text */
           alert("Gallery copied to clipboard");
         }
+        
+        function deletePicture() {
+			$('.carousel').carousel({
+				  pause: true
+				});
+			let confirmAction = confirm("Are you sure to delete the current picture?");
+			if (confirmAction) {
+			     const img = $(".active.carousel-item")[0];
+			     window.location = "/towit/delete_trailer_image/"+img.id;
+			} else {			 
+	            $('.carousel').carousel({
+	                  pause: "hover"
+	                });
+			}
+        }
     </script>
 {% endblock %} 
 	           
@@ -41,9 +56,14 @@
 
 {% block content %}    
     <h3 class="mt-3">Trailer <b> {{ trailer.name }} </b>
-      <a href="../update_trailer/{{ trailer.id }}">
-        <button class="btn btn-secondary fileinput-upload fileinput-upload-button">
+      <a href="/towit/update_trailer/{{ trailer.id }}">
+        <button class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Edit trailer"">
             <i class="fa fa-pencil"></i>
+        </button>
+      </a>
+      <a href="/towit/delete_trailer/{{ trailer.id }}">
+        <button class="btn btn-danger float-right data-toggle="tooltip" data-placement="left" title="Delete trailer"">
+            <i class="fa fa-trash"></i>
         </button>
       </a>
     </h3>    
@@ -91,7 +111,7 @@
             <div class="card-header">
 		        Title: 
 		        {% if trailer.title_file != "" %}
-		            <a href="{% static trailer.title_file %}"><b> {{ trailer.title }} </b></a>
+{#		            <a href="{{ trailer.title_file.url }}"><b> {{ trailer.title }} </b></a>#}
 		        {% else %}
 		            <b> {{ trailer.title }} </b>
 		        {% endif %}
@@ -103,8 +123,8 @@
         <div class="col-6 card">     
             <div class="card-header">
 	            Sticker: 
-	            {% if trailer.title_file != "" %}
-	                <a href="{% static trailer.sticker_file %}"><b> {{ trailer.sticker }} </b></a>
+	            {% if trailer.sticker_file != "" %}
+	                <a href="{{ trailer.sticker_file.url }}"><b> {{ trailer.sticker }} </b></a>
 	            {% else %}
 	                <b> {{ trailer.sticker }} </b>
 	            {% endif %}             
@@ -114,12 +134,33 @@
 		      </div>
         </div>    
     </div>    
+
+    <!-- Maintenance -->
+    <h4 class="mt-3">Maintenance</b></h4>  
+    <hr class="mt-0 mb-4">
+    <div class="row card">    
+        <div class="card-header">
+            Sticker: 
+            {% if trailer.sticker_file != "" %}
+                  <a href="{{ trailer.sticker_file.url }}"><b> {{ trailer.sticker }} </b></a>
+            {% else %}
+                <b> {{ trailer.sticker }} </b>
+            {% endif %}             
+        </div>
+		<div class="card-body">
+		    {{ trailer.sticker_note }}
+		</div>
+    </div>  
+    
     
     <!-- Gallery -->    
     <h4 class="mt-3">Gallery </b>
-        <button onclick="myFunction()" class="btn btn-secondary fileinput-upload fileinput-upload-button">
-		    <i class="fa fa-share"></i>
+        <button onclick="myFunction()" class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Copy to clipboard"">
+		    <i class="fa fa-clipboard"></i>
 	    </button>
+        <button onclick="deletePicture()" class="btn btn-danger float-right data-toggle="tooltip" data-placement="left" title="Remove current picture"">
+            <i class="fa fa-trash"></i>
+        </button>
     </h4>  
     <hr class="mt-0 mb-4">
     
@@ -131,11 +172,11 @@
 	  </ol>
 	  <div class="carousel-inner">
 	   {% for img in images %}	       
-		    <div class="carousel-item 
+		    <div id={{ img.id }} class="carousel-item 
 		    {% if forloop.counter0 == 0 %}
                active
             {% endif %} ">
-		      <img class="d-block w-100" src="{% static img.image %}" alt="Slide">
+		      <img class="d-block w-100" src="{{ img.image.url }}" alt="Slide">
 		    </div>
 	   {% endfor %}
 	  <a class="carousel-control-prev" href="#carouselTrailerPictures" role="button" data-slide="prev">

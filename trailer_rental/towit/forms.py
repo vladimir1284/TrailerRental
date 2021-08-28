@@ -23,7 +23,7 @@ class TrailerForm(ModelForm):
 class maintenanceForm(ModelForm):
     class Meta:
         model = maintenance    
-        fields = ('date', 'price', 'description', 'comments') 
+        fields = ('date', 'price', 'status', 'comments') 
         
     date = forms.DateField(input_formats=['%d/%m/%Y'],  
         widget=BootstrapDateTimePickerInput(attrs={'placeholder': 'Select a date'}))
