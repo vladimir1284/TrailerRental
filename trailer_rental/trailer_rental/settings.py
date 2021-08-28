@@ -129,7 +129,7 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = "trailer-rental-323614-5eec73be91df.json"
+GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = os.path.join(BASE_DIR, "trailer-rental-323614-5eec73be91df.json")
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
