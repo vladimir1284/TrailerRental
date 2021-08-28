@@ -1,9 +1,10 @@
+{% load static %}
 <!doctype html>
 <html lang="en">
   <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
      <!-- Bootstrap 4 -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
@@ -13,19 +14,88 @@
     <!-- Font Awesome -->
     <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
 
+    <!-- Base CSS -->
+    <link href="{% static '/css/base.css' %}" rel="stylesheet">
+    
 	{% block head %}
 	{% endblock %} 
     
+    <style>
+    html {
+        font-size: 28px; /*Needs to be adjusted */
+    }
+    .avatar{
+        border-radius: 50%; 
+    }
+    .name{
+        margin-bottom: 14px; 
+    }
+    .email{
+        font-size: 14px; 
+        margin-bottom: 14px; 
+    }
+    </style>
     <title>TOWIT</title>
   </head>
   <body>
-    <div class="container">
-      <div class="row justify-content-center">
-        <div class="col-8">
-          {% block content %}
-          {% endblock %}
+    <div class="container-fluid">
+		<nav class="navbar navbar-default navbar-expand nav-menu">
+		    <a class="navbar-brand" href="/towit/trailers/"><i class="fa fa-home"></i>TOWIT</a>
+		    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+	            <span class="navbar-toggler-icon"></span>
+	        </button>
+		
+			<div class="collapse navbar-collapse button-menu">
+			    <ul class="nav navbar-nav ">			        
+		           {% block nav %}
+		            {% endblock %} 
+			    </ul>	    
+		    </div>	        
+		    <ul class="nav navbar-nav navbar-right">
+		        <li class="dropleft">
+		            <div class="dropdown-toggle" data-toggle="dropdown">
+		                <span class="glyphicon glyphicon-user"></span> 
+		                <img class="avatar" src={% static user.profile_user.avatar.url %}>
+		                <span class="glyphicon glyphicon-chevron-down"></span>
+		            </div>
+		            <ul class="dropdown-menu">
+		                <li>
+		                    <div class="navbar-login">
+		                        <div class="row">
+		                            <div class="col-12">
+                                        <p class="text-center name"><strong>{{ user.get_username }}</strong></p>
+		                                <p class="text-center email">{{ user.email }}</p>
+		                                <p class="text-left">
+		                                    <a href="/accounts/logout/" class="btn btn-primary btn-block btn-sm">Logout</a>
+		                                </p>
+		                            </div>
+		                        </div>
+		                    </div>
+		                </li>
+		                <li class="divider"></li>
+		                <li>
+		                    <div class="navbar-login navbar-login-session">
+		                        <div class="row">
+		                            <div class="col-lg-12">
+		                                <p>
+		                                    <a href="/accounts/password_reset/" class="btn btn-danger btn-block">Change Password</a>
+		                                </p>
+		                            </div>
+		                        </div>
+		                    </div>
+		                </li>
+		            </ul>
+		        </li>
+		    </ul>
+		</nav>
+		
+	      <div class="row justify-content-center">
+	        <div class="col-12">
+	          {% block content %}
+	          {% endblock %}
+	        </div>
+	      </div>      
+    
         </div>
-      </div>
-    </div>
     </body>
 </html> 

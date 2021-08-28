@@ -19,7 +19,7 @@
 	    table.dataTable thead .sorting_desc_disabled:before {
 	    bottom: .5em;
 	    }
-	    a {
+	    .trailer-link {
 	    text-decoration: underline;
 	    }
 	    .circle{       
@@ -76,45 +76,47 @@
     
     <hr class="mt-0 mb-4">
     
-	<table id="trailersTable" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
-	  <thead>
-	    <tr>
-	      <th class="th-sm">Name
-	      </th>
-	      <th class="th-sm">Type
-	      </th>
-	      <th class="th-sm">Size
-	      </th>
-	      <th class="th-sm">Owner
-	      </th>
-	      <th class="th-sm">Status
-	      </th>
-	    </tr>
-	  </thead>
-	  <tbody>
-	    {% for trailer in trailers %}
-	        <tr>
-			  <td> <a href="../trailer/{{ trailer.id }}"> {{ trailer.name }} </a></td>
-			  <td> {{ trailer.type }}</td>
-			  <td> {{ trailer.length }}'</td>
-			  <td> {{ trailer.owner }}</td>
-			  <td> {{ trailer.status }}</td>
-	        </tr>	    
-        {% endfor %}
-	  </tbody>
-	  <tfoot>
-	    <tr>
-	      <th class="th-sm">Name
-          </th>
-          <th class="th-sm">Type
-          </th>
-          <th class="th-sm">Size
-          </th>
-          <th class="th-sm">Owner
-          </th>
-          <th class="th-sm">Status
-          </th>
-	    </tr>
-	  </tfoot>
-	</table>
+    <div class="table-responsive-md">   
+		<table id="trailersTable" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
+		  <thead>
+		    <tr>
+		      <th class="th-sm">Name
+		      </th>
+		      <th class="th-sm">Type
+		      </th>
+		      <th class="th-sm">Size
+		      </th>
+		      <th class="th-sm">Owner
+		      </th>
+		      <th class="th-sm">Status
+		      </th>
+		    </tr>
+		  </thead>
+		  <tbody>
+		    {% for trailer in trailers %}
+		        <tr>
+				  <td> <a class="trailer-link" href="/towit/trailer/{{ trailer.id }}"> {{ trailer.name }} </a></td>
+				  <td> {{ trailer.type }}</td>
+				  <td> {{ trailer.length }}'</td>
+				  <td> {{ trailer.owner }}</td>
+				  <td> {{ trailer.status }}</td>
+		        </tr>	    
+	        {% endfor %}
+		  </tbody>
+		  <tfoot>
+		    <tr>
+		      <th class="th-sm">Name
+	          </th>
+	          <th class="th-sm">Type
+	          </th>
+	          <th class="th-sm">Size
+	          </th>
+	          <th class="th-sm">Owner
+	          </th>
+	          <th class="th-sm">Status
+	          </th>
+		    </tr>
+		  </tfoot>
+		</table>
+	</div>
 {% endblock %} 

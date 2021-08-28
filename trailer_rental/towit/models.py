@@ -3,9 +3,19 @@ from datetime import datetime
 from gdstorage.storage import GoogleDriveStorage
 from django.template.defaultfilters import default
 from django.urls import reverse
+from django.contrib.auth.models import User
 
 # Define Google Drive Storage
 gd_storage = GoogleDriveStorage()
+
+class UserProfile(models.Model):
+    user   = models.OneToOneField(User,
+                        on_delete=models.CASCADE,
+                        related_name='profile_user')
+    avatar = models.ImageField(upload_to='avatars')
+    # avatar = models.ImageField(upload_to='towit/avatars', storage=gd_storage)
+    def __str__(self):
+        return self.user.get_username()
 
 class Owners(models.Model):
     name = models.CharField(max_length=50)
@@ -91,24 +101,27 @@ class Trailer(models.Model):
                             on_delete=models.CASCADE,
                             related_name='title_stage')
     title_file = models.FileField(upload_to='titles', blank=True)
-    # title_note = models.FileField(upload_to='titles', storage=gd_storage)
+    # title_note = models.FileField(upload_to='towit/titles', blank=True, storage=gd_storage)
     title_note = models.TextField(blank=True)
     sticker = models.ForeignKey(Stage,
                             on_delete=models.CASCADE,
                             related_name='sticker_stage')
     sticker_file = models.FileField(upload_to='stickers', blank=True)
-    # sticker_file = models.FileField(upload_to='stickers', storage=gd_storage)
+    # sticker_file = models.FileField(upload_to='towit/stickers', blank=True, storage=gd_storage)
     sticker_note = models.TextField(blank=True)
     
     def get_absolute_url(self):
-        return reverse('trailer-detail', kwargs={'id': self.id})
+        return reverse('trailer_detail', kwargs={'id': self.id})
+    
+    def __str__(self):
+        return self.name
 
 class TrailerPicture(models.Model):
     trailer = models.ForeignKey(Trailer,
                             on_delete=models.CASCADE,
                             related_name='trailer_picture')
     image = models.FileField(upload_to='pictures')
-    # image = models.FileField(upload_to='pictures', storage=gd_storage)
+    # image = models.FileField(upload_to='towit/pictures', storage=gd_storage)
 
 class maintenance(models.Model):
     trailer = models.ForeignKey(Trailer,
@@ -119,6 +132,8 @@ class maintenance(models.Model):
     description = models.TextField()
     comments = models.TextField(blank=True)
     
+    def get_absolute_url(self):
+        return reverse('trailer_detail', kwargs={'id': self.trailer.id})
     
    
     

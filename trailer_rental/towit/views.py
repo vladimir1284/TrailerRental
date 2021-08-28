@@ -1,14 +1,16 @@
 from django.shortcuts import render
-from django.http import Http404
-
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView
-from .models import Trailer, TrailerPicture
-from .forms import TrailerForm
+from .models import Trailer, TrailerPicture, maintenance
+from .forms import TrailerForm, maintenanceForm
+from django.contrib.auth.decorators import login_required
 
+@login_required
 def trailers(request):
     trailers = Trailer.objects.all()
     return render(request, 'towit/trailer/trailers.html', {'trailers': trailers})
 
+@login_required
 def trailer_detail(request, id):
     trailer = Trailer.objects.get(id=id)
     images = TrailerPicture.objects.filter(trailer = trailer)[:]
@@ -17,7 +19,33 @@ def trailer_detail(request, id):
                                                           'images': images,
                                                           'tax': tax})
 
-class TrailerCreateView(CreateView):
+class MaintenanceCreateView(LoginRequiredMixin,CreateView):
+    model = maintenance
+    form_class = maintenanceForm    
+    template_name = 'towit/trailer/new_maintenance.html' 
+    
+    def form_valid(self, form):
+        form.instance.trailer = Trailer.objects.get(id=self.kwargs['trailer_id'])
+        print(form.instance)
+        context = {'trailer_id':self.kwargs['trailer_id']}
+        return super(MaintenanceCreateView, self).form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super(MaintenanceCreateView, self).get_context_data(**kwargs)
+        context['trailer_id'] = self.kwargs['trailer_id']
+        return context
+    
+    # def post(self, request, * args, ** kwargs):
+    #     form_class = self.get_form_class()
+    #     form = self.get_form(form_class)
+    #     if form.is_valid():        
+    #         print(form)    
+    #         form.
+    #         return self.form_valid(form)
+    #     else:
+    #         return self.form_invalid(form)
+    
+class TrailerCreateView(LoginRequiredMixin,CreateView):
     model = Trailer
     form_class = TrailerForm    
     template_name = 'towit/trailer/new_trailer.html' 
@@ -35,7 +63,7 @@ class TrailerCreateView(CreateView):
         else:
             return self.form_invalid(form)
         
-class TrailerUpdateView(UpdateView):
+class TrailerUpdateView(LoginRequiredMixin,UpdateView):
     model = Trailer
     form_class = TrailerForm    
     template_name = 'towit/trailer/new_trailer.html' 

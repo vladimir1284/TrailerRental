@@ -3,33 +3,6 @@
 {% load static %}
 
 {% block head %}
-    <div class="hidden">
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16">
-      <defs>
-        <symbol id="edit-icon" viewbox="0 0 16 16">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
-			  <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-			  <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
-			</svg>
-        </symbol>
-      </defs>
-      <!-- to make the circle-arrow-left.svg file
-           also usable as image: -->
-      <use href="#edit-icon"/>
-    </svg>
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16">
-      <defs>
-        <symbol id="share-icon" viewbox="0 0 16 16">
-           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-share" viewBox="0 0 16 16">
-            <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/>
-            </svg>
-        </symbol>
-      </defs>
-      <!-- to make the circle-arrow-left.svg file
-           also usable as image: -->
-      <use href="#share-icon"/>
-    </svg>
-    </div>
     <style>
     .btn-secondary {
         padding: 2px 6px 2px 6px;
@@ -61,13 +34,17 @@
         }
     </script>
 {% endblock %} 
-	
+	           
+{% block nav %}
+    <li><a href="/towit/trailers/">Trailers</a></li>
+{% endblock %} 
+
 {% block content %}    
     <h3 class="mt-3">Trailer <b> {{ trailer.name }} </b>
       <a href="../update_trailer/{{ trailer.id }}">
-        <svg width="28" height="28" fill="white" version="2.0">
-            <use href="#edit-icon" />
-        </svg>
+        <button class="btn btn-secondary fileinput-upload fileinput-upload-button">
+            <i class="fa fa-pencil"></i>
+        </button>
       </a>
     </h3>    
     <hr class="mt-0 mb-4">
@@ -114,7 +91,7 @@
             <div class="card-header">
 		        Title: 
 		        {% if trailer.title_file != "" %}
-		            <a href="../../static/{{ trailer.title_file }}"><b> {{ trailer.title }} </b></a>
+		            <a href="{% static trailer.title_file %}"><b> {{ trailer.title }} </b></a>
 		        {% else %}
 		            <b> {{ trailer.title }} </b>
 		        {% endif %}
@@ -127,7 +104,7 @@
             <div class="card-header">
 	            Sticker: 
 	            {% if trailer.title_file != "" %}
-	                <a href="../../static/{{ trailer.sticker_file }}"><b> {{ trailer.sticker }} </b></a>
+	                <a href="{% static trailer.sticker_file %}"><b> {{ trailer.sticker }} </b></a>
 	            {% else %}
 	                <b> {{ trailer.sticker }} </b>
 	            {% endif %}             
@@ -141,9 +118,7 @@
     <!-- Gallery -->    
     <h4 class="mt-3">Gallery </b>
         <button onclick="myFunction()" class="btn btn-secondary fileinput-upload fileinput-upload-button">
-		    <svg width="20" height="20" fill="white" version="2.0">
-		        <use href="#share-icon" />
-		    </svg>
+		    <i class="fa fa-share"></i>
 	    </button>
     </h4>  
     <hr class="mt-0 mb-4">
@@ -160,7 +135,7 @@
 		    {% if forloop.counter0 == 0 %}
                active
             {% endif %} ">
-		      <img class="d-block w-100" src="../../static/{{ img.image }}" alt="Slide">
+		      <img class="d-block w-100" src="{% static img.image %}" alt="Slide">
 		    </div>
 	   {% endfor %}
 	  <a class="carousel-control-prev" href="#carouselTrailerPictures" role="button" data-slide="prev">
