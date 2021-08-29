@@ -4,9 +4,6 @@
 
 {% block head %}
     <style>
-    .btn-primary {
-        padding: 2px 6px 2px 6px;
-    }
     .hidden{
         visibility: hidden;
     }
@@ -112,6 +109,7 @@
 		        Title: 
 		        {% if trailer.title_file != "" %}
 {#		            <a href="{{ trailer.title_file.url }}"><b> {{ trailer.title }} </b></a>#}
+                    <a href=""><b> {{ trailer.title }} </b></a>
 		        {% else %}
 		            <b> {{ trailer.title }} </b>
 		        {% endif %}
@@ -124,7 +122,8 @@
             <div class="card-header">
 	            Sticker: 
 	            {% if trailer.sticker_file != "" %}
-	                <a href="{{ trailer.sticker_file.url }}"><b> {{ trailer.sticker }} </b></a>
+{#                  <a href="{{ trailer.sticker_file.url }}"><b> {{ trailer.sticker }} </b></a>#}
+                    <a href=""><b> {{ trailer.sticker }} </b></a>
 	            {% else %}
 	                <b> {{ trailer.sticker }} </b>
 	            {% endif %}             
@@ -136,21 +135,29 @@
     </div>    
 
     <!-- Maintenance -->
-    <h4 class="mt-3">Maintenance</b></h4>  
-    <hr class="mt-0 mb-4">
-    <div class="row card">    
-        <div class="card-header">
-            Sticker: 
-            {% if trailer.sticker_file != "" %}
-                  <a href="{{ trailer.sticker_file.url }}"><b> {{ trailer.sticker }} </b></a>
-            {% else %}
-                <b> {{ trailer.sticker }} </b>
-            {% endif %}             
-        </div>
-		<div class="card-body">
-		    {{ trailer.sticker_note }}
-		</div>
-    </div>  
+    {% if maintenance != "" %}
+	    <h4 class="mt-3">Maintenance</b>
+	        <a href="/towit/maintenances/{{ trailer.id }}">
+		        <button class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Copy to clipboard"">
+		            <i class="fa fa-wrench"></i>
+		        </button>
+		    </a>
+	    </h4>  
+	    <hr class="mt-0 mb-4">
+	    <div class="row card">    
+	        <div class="card-header row">
+                    <div class="col-6">   
+                        Status:  <b> {{ maintenance.status }} </b>
+	                </div>
+                    <div class="col-6">  
+                        {{ maintenance.date }}
+                    </div>
+	        </div>
+			<div class="card-body">
+			    {{ maintenance.comments }}
+			</div>
+	    </div>  
+    {% endif %}  
     
     
     <!-- Gallery -->    
@@ -176,7 +183,7 @@
 		    {% if forloop.counter0 == 0 %}
                active
             {% endif %} ">
-		      <img class="d-block w-100" src="{{ img.image.url }}" alt="Slide">
+{#		      <img class="d-block w-100" src="{{ img.image.url }}" alt="Slide">#}
 		    </div>
 	   {% endfor %}
 	  <a class="carousel-control-prev" href="#carouselTrailerPictures" role="button" data-slide="prev">

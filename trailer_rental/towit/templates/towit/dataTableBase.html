@@ -1,0 +1,69 @@
+{% extends 'towit/base.html' %}
+
+{% load static %}
+
+{% block head %}
+    <!-- MDBootstrap Datatables  -->
+    <link href="{% static '/css/compiled-4.20.0.min.css' %}" rel="stylesheet">
+    <link href="{% static '/css/datatables.min.css' %}" rel="stylesheet">
+    <style>
+        table.dataTable thead .sorting:after,
+        table.dataTable thead .sorting:before,
+        table.dataTable thead .sorting_asc:after,
+        table.dataTable thead .sorting_asc:before,
+        table.dataTable thead .sorting_asc_disabled:after,
+        table.dataTable thead .sorting_asc_disabled:before,
+        table.dataTable thead .sorting_desc:after,
+        table.dataTable thead .sorting_desc:before,
+        table.dataTable thead .sorting_desc_disabled:after,
+        table.dataTable thead .sorting_desc_disabled:before {
+        bottom: .5em;
+        }
+        .trailer-link {
+        text-decoration: underline;
+        }
+        .circle{       
+            margin-top: 12px;
+            height: 25px;
+            width: 25px;
+            border: 1px solid #45B4FE;
+            border-radius: 50%;
+            display: inline-block;
+            /* color: red; */
+            background-color: #cae3f9;
+        }
+        .circle-plus{
+            position: relative;
+            background-color: #45B4FE;
+            width: 50%;
+            height: 12.5%;
+            left: 25%;
+            top: 43.75%;
+        }
+        .vertical-plus{
+            position: relative;
+            background-color: #45B4FE;
+            width: 21.5%;
+            height: 399%;
+            left: 40.75%;
+            top: -127.5%;
+        }
+    </style>
+    <!-- MDBootstrap Datatables  -->
+    <script type="text/javascript" src="{% static '/js/datatables.min.js' %}"></script>
+    <script>
+	    $(document).ready(function() {
+		    $('#table').DataTable({
+                "paging":   true,
+                {% block table_params %}
+                {% endblock %} 
+                "scrollX": true,
+                "scrollY": true,
+                "info":   false,
+            } );
+		} );
+    </script>
+    {% block table_head %}
+    {% endblock %} 
+{% endblock %} 
+    

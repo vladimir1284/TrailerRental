@@ -9,6 +9,7 @@
   $(function () {
     $("#{{ widget.datetimepicker_id }}").datetimepicker({
       format: 'DD/MM/YYYY',
+      date: "{{ widget.fecha_inicial|date:'m/d/Y' }}",
     });
   });
 </script>
@@ -22,3 +23,5 @@
    margin:0;
  }
 </style>
+
+{#"09/07/2021" {{ widget.fecha_inicial|date:'d/m/Y' }}",#}

@@ -1,6 +1,6 @@
 from django.forms import ModelForm
 from django import forms
-from .models import Trailer, UserProfile, maintenance
+from .models import Trailer, UserProfile, Maintenance
 from .widgets import BootstrapDateTimePickerInput, BootstrapYearPickerInput
 from django.core.files.images import get_image_dimensions
 
@@ -20,13 +20,14 @@ class TrailerForm(ModelForm):
     pictures = forms.FileField(required=False,
                                widget=forms.ClearableFileInput(attrs={'multiple':True}))
     
-class maintenanceForm(ModelForm):
+class MaintenanceForm(ModelForm):
     class Meta:
-        model = maintenance    
+        model = Maintenance    
         fields = ('date', 'price', 'status', 'comments') 
         
     date = forms.DateField(input_formats=['%d/%m/%Y'],  
         widget=BootstrapDateTimePickerInput(attrs={'placeholder': 'Select a date'}))
+    
     
 class UserProfileForm(forms.ModelForm):
     class Meta:

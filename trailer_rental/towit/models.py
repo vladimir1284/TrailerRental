@@ -129,7 +129,7 @@ class TrailerPicture(models.Model):
     # image = models.FileField(upload_to='pictures')
     image = models.FileField(upload_to='towit/pictures', storage=gd_storage)
 
-class maintenance(models.Model):
+class Maintenance(models.Model):
     trailer = models.ForeignKey(Trailer,
                             on_delete=models.CASCADE,
                             related_name='trailer_maintenance')
@@ -141,7 +141,7 @@ class maintenance(models.Model):
     comments = models.TextField(blank=True)
     
     def get_absolute_url(self):
-        return reverse('trailer_detail', kwargs={'id': self.trailer.id})
+        return reverse('maintenances', kwargs={'trailer_id': self.trailer.id})
     
    
     

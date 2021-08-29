@@ -12,6 +12,7 @@ class BootstrapDateTimePickerInput(DateTimeInput):
         context = super().get_context(name, value, attrs)
         context['widget']['datetimepicker_id'] = datetimepicker_id
         context['widget']['name'] = name
+        context['widget']['fecha_inicial'] = value
         return context
 
 class BootstrapYearPickerInput(DateTimeInput):
