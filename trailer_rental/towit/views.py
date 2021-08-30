@@ -1,15 +1,25 @@
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView
-from .models import Trailer, TrailerPicture, Maintenance
-from .forms import TrailerForm, MaintenanceForm
+from .models import Trailer, TrailerPicture, Maintenance, Contact
+from .forms import TrailerForm, MaintenanceForm, ContactForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 
 @login_required
+def contact_detail(request, id):
+    contact = Contact.objects.get(id=id)
+    return render(request, 'towit/client/contact.html', {'contact': contact})
+    
+@login_required
 def trailers(request):
     trailers = Trailer.objects.all()
     return render(request, 'towit/trailer/trailers.html', {'trailers': trailers})
+
+@login_required
+def contacts(request):
+    contacts = Contact.objects.all()
+    return render(request, 'towit/client/contacts.html', {'contacts': contacts})
 
 @login_required
 def maintenances(request, trailer_id):
@@ -113,5 +123,10 @@ class TrailerUpdateView(LoginRequiredMixin,UpdateView):
             return super(TrailerUpdateView, self).post(request, **kwargs)
         else:
             return self.form_invalid(form)
+    
+class ContactCreateView(LoginRequiredMixin,CreateView):
+    model = Contact
+    form_class = ContactForm    
+    template_name = 'towit/client/new_contact.html' 
     
 

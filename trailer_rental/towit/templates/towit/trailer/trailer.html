@@ -7,6 +7,17 @@
     .hidden{
         visibility: hidden;
     }
+	.dot {
+	  height: 1em;
+	  width: 1em;
+	  background-color: {{trailer.color.code}};
+	  border-radius: 50%;
+	  display: inline-block;
+	  padding-top:5px;
+	}
+	.bottom-space {
+	    margin-bottom: 1em;
+	}
     </style>
     
     <script>
@@ -71,18 +82,18 @@
     <hr class="mt-0 mb-4">
 	<div class="row">
 	  <div class="col-6 col-md-5">VIN: <b> {{ trailer.vin }} </b></div>
-	  <div class="col-6 col-md-3">Size: <b> {{ trailer.length }}' </b></div>
+	  <div class="col-6 col-md-3">Size: <b> {{ trailer.size }}' </b></div>
 	  <div class="col-6 col-md-4">Type: <b> {{ trailer.type }} </b></div>
 	</div>
     <div class="row">
-      <div class="col-6 col-md-5">Ramps: <b> {{ trailer.get_ramps_material_display }} </b></div>
-      <div class="col-6 col-md-3">Axles: <b> {{ trailer.number_of_axles }} </b></div>
+      <div class="col-6 col-md-5"><b>{{ trailer.number_of_ramps }}</b> ramps, <b>{{ trailer.get_ramps_length_display }}'</b> length</div>
+      <div class="col-6 col-md-3">Axles: <b> {{ trailer.get_number_of_axles_display }} </b></div>
       <div class="col-6 col-md-4">Bed: <b> {{ trailer.get_bed_type_display }} </b></div>
     </div>
     <div class="row">
-      <div class="col-6 col-md-5">Model: <b> {{ trailer.model }} </b></div>
+      <div class="col-6 col-md-5">Material: <b> {{ trailer.get_ramps_material_display }} </b></div>
       <div class="col-6 col-md-3">Tires: <b> {{ trailer.get_current_tires_condition_display }} </b></div>
-      <div class="col-6 col-md-4">Color: <b> {{ trailer.color }} </b></div>
+      <div class="col-6 col-md-4">Color: <span class="dot"></span> <b> {{ trailer.color }} </b></div>
     </div>
 
     <!-- Legal matters -->
@@ -94,7 +105,7 @@
       <div class="col-6 col-md-3">Tax: <b> ${{ tax|intcomma }} </b></div>
       <div class="col-6 col-md-4">Price: <b> ${{ trailer.price|intcomma }} </b></div>
     </div>
-    <div class="row">
+    <div class="row bottom-space">
       <div class="col-6 col-md-5">Legal owner: <b> {{ trailer.Legal_owner }} </b></div>
       <div class="col-6 col-md-3">Owner: <b> {{ trailer.owner }} </b></div>
       <div class="col-6 col-md-4">Plate: <b> {{ trailer.plate }} </b>      

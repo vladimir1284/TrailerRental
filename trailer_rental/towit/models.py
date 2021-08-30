@@ -12,13 +12,20 @@ class UserProfile(models.Model):
     user   = models.OneToOneField(User,
                         on_delete=models.CASCADE,
                         related_name='profile_user')
-    # avatar = models.ImageField(upload_to='avatars')
-    avatar = models.ImageField(upload_to='towit/avatars', storage=gd_storage)
+    avatar = models.ImageField(upload_to='avatars')
+    # avatar = models.ImageField(upload_to='towit/avatars', storage=gd_storage)
     def __str__(self):
         return self.user.get_username()
 
 class Owners(models.Model):
     name = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return self.name
+
+class Color(models.Model):
+    name = models.CharField(max_length=50)
+    code = models.CharField(max_length=7, blank=True)
     
     def __str__(self):
         return self.name
@@ -30,6 +37,18 @@ class TrailerType(models.Model):
         return self.name
     
 class Status(models.Model):
+    name = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return self.name
+    
+class Interest(models.Model):
+    name = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return self.name
+    
+class LeaseStage(models.Model):
     name = models.CharField(max_length=50)
     
     def __str__(self):
@@ -53,17 +72,20 @@ class Trailer(models.Model):
                             on_delete=models.CASCADE,
                             related_name='trailer_type')
     vin = models.CharField(max_length=50)
-    model = models.CharField(max_length=150)
     year = models.DateField(default=datetime.now().strftime(("%Y")))
-    length = models.IntegerField()
-    width = models.IntegerField()
-    number_of_axles = models.IntegerField()
-    color = models.CharField(max_length=20)
+    size = models.IntegerField()
+    number_of_axles = models.PositiveSmallIntegerField(
+        choices=((1,'2'),
+                (2,'3')),
+        default=1,
+    )
+    color = models.ForeignKey(Color,
+                            on_delete=models.CASCADE,
+                            related_name='trailer_color')
     status = models.ForeignKey(Status,
                             on_delete=models.CASCADE,
                             default = 1,
                             related_name='trailer_status')
-    location = models.TextField()
     bed_type = models.PositiveSmallIntegerField(
         choices=((1,'Wood'),
                 (2,'Steel')),
@@ -78,7 +100,7 @@ class Trailer(models.Model):
     )
     has_spare_tire = models.PositiveSmallIntegerField(
         choices=((1,'Yes'),
-                (3,'No')),
+                (2,'No')),
         default=1,
     )
     number_of_ramps = models.IntegerField()
@@ -87,7 +109,14 @@ class Trailer(models.Model):
                 (2,'Steel')),
         default=1,
     )
-    ramps_comments = models.TextField(blank=True)
+    ramps_length = models.PositiveSmallIntegerField(
+        choices=((1,'5'),
+                (2,'6'),
+                (3,'7'),
+                (4,'8'),
+                (5,'9')),
+        default=1,
+    )
     electrical_instalation = models.TextField(blank=True)
     price = models.IntegerField()
     tax_price = models.IntegerField()
@@ -143,9 +172,80 @@ class Maintenance(models.Model):
     def get_absolute_url(self):
         return reverse('maintenances', kwargs={'trailer_id': self.trailer.id})
     
-   
+
+class Person(models.Model):
+    name = models.CharField(max_length=150)
+    address  = models.CharField(max_length=500, blank=True)
+    mail  = models.CharField(max_length=50, blank=True)
+    phone = models.CharField(max_length=50, blank=True)
     
     
+    def __str__(self):
+        return self.name
+ 
+class Lessee(Person):    
+    insurance_number = models.CharField(max_length=150)
+    insurance_file = models.FileField(upload_to='towit/insurances', storage=gd_storage)
+    license_number = models.CharField(max_length=150)
+    license_file = models.FileField(upload_to='towit/licenses', storage=gd_storage)    
+    
+    def __str__(self):
+        return self.name    
+ 
+class Contact(Person): 
+    interest = models.ForeignKey(Interest,
+                            on_delete=models.CASCADE,
+                            related_name='contact_interest')    
+    size = models.IntegerField(blank=True)   
+    price = models.IntegerField(blank=True)
+    term = models.IntegerField()
+    term_unit = models.PositiveSmallIntegerField(
+        choices=((1,'Weeks'),
+                (2,'Months')),
+        default=1,
+    )
+    type = models.ForeignKey(TrailerType, blank=True, 
+                            on_delete=models.CASCADE,
+                            related_name='contact_type')
+    interest_date =  models.DateField()
+    
+    def __str__(self):
+        return self.name
+    
+    def get_absolute_url(self):
+        return reverse('contacts')
+ 
+class Lease(models.Model):
+    lessee = models.ForeignKey(Lessee,
+                            on_delete=models.CASCADE,
+                            related_name='lease')   
+    trailer = models.ForeignKey(Trailer,
+                            on_delete=models.CASCADE,
+                            related_name='lease_trailer')
+    stage = models.ForeignKey(LeaseStage,
+                            on_delete=models.CASCADE,
+                            related_name='lease_stage')      
+    location = models.CharField(max_length=500)
+    location_file = models.FileField(upload_to='towit/locations', storage=gd_storage)    
+    effective_date = models.DateField()
+    contract_end_date = models.DateField()
+    number_of_payments = models.IntegerField()
+    payment_amount = models.IntegerField()
+    service_charge = models.IntegerField()
+    security_deposit = models.IntegerField()
+    inspection_date = models.DateField()
+    current_condition = models.PositiveSmallIntegerField(
+        choices=((1,'New'),
+                (2,'Like new'),
+                (3,'Used')),
+        default=1,
+    )
+    
+    def __str__(self):
+        return self.trailer.name + " -> " + self.lessee.name
+    
+    class Meta:
+        ordering = ('-effective_date',)
     
     
     

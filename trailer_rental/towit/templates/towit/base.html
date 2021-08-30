@@ -21,29 +21,35 @@
 	{% endblock %} 
     
     <style>
-    html {
-        font-size: 28px; /*Needs to be adjusted */
-    }
-    .avatar{
-        border-radius: 50%; 
-    }
-    .name{
-        margin-bottom: 14px; 
-    }
-    .year{
-        font-size: 18px; 
-    }
-    .email{
-        font-size: 14px; 
-        margin-bottom: 14px; 
-    }
+	    html {
+	        font-size: 28px; /*Needs to be adjusted */
+	    }
+	    .avatar{
+	        border-radius: 50%; 
+	    }
+	    .name{
+	        margin-bottom: 14px; 
+	    }
+	    .year{
+	        font-size: 18px; 
+	    }
+	    .email{
+	        font-size: 14px; 
+	        margin-bottom: 14px; 
+	    }
+	    .textarea.form-control{
+	        height: 100px;
+	    }
+		.main {
+		  margin-top: 150px; /* Add a top margin to avoid content overlay */
+		}
     </style>
     <title>TOWIT</title>
   </head>
   <body>
     <div class="container-fluid">
-		<nav class="navbar navbar-default navbar-expand nav-menu">
-		    <a class="navbar-brand" href="/towit/trailers/"><i class="fa fa-home"></i>TOWIT</a>
+		<nav class="navbar fixed-top navbar-default navbar-expand nav-menu">
+		    <a class="navbar-brand" href="/towit/trailers/">TOWIT</a>
 		    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
 	            <span class="navbar-toggler-icon"></span>
 	        </button>
@@ -58,7 +64,7 @@
 		        <li class="dropleft">
 		            <div class="dropdown-toggle" data-toggle="dropdown">
 		                <span class="glyphicon glyphicon-user"></span> 
-{#		                <img class="avatar" src={{ user.profile_user.avatar.url }}>#}
+		                <img class="avatar" src={% static user.profile_user.avatar %} >
 		                <span class="glyphicon glyphicon-chevron-down"></span>
 		            </div>
 		            <ul class="dropdown-menu">
@@ -92,7 +98,7 @@
 		    </ul>
 		</nav>
 		
-	      <div class="row justify-content-center">
+	      <div class="row justify-content-center main">
 	        <div class="col-12">
 	          {% block content %}
 	          {% endblock %}

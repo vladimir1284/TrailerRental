@@ -12,14 +12,15 @@
 {% endblock %}
                
 {% block nav %}
+    <li><a href="/towit/contacts/">Contacts</a></li>
     <li><a href="/towit/trailers/">Trailers</a></li>
 {% endblock %}  
 
 {% block content %}
-	<h3 class="mt-3">Register a new trailer</h3>
+	<h3 class="mt-3">Register a new contact</h3>
 	<hr class="mt-0 mb-4">
 	<form enctype="multipart/form-data" method="post">
 		{% csrf_token %}
-        {% crispy form %}
+		{% crispy form %}
 	</form>
 {% endblock %} 

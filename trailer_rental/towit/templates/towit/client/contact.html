@@ -1,0 +1,31 @@
+{% extends 'towit/base.html' %}
+
+{% load static %}
+
+	           
+{% block nav %}
+    <li><a href="/towit/trailers/">Trailers</a></li>
+    <li><a href="/towit/contacts/">Contacts</a></li>
+{% endblock %} 
+
+{% block content %}    
+    <h3 class="mt-3"> <b> Contacto</b>
+      <a href="tel:{{ contact.phone }}">
+        <button class="btn btn-success data-toggle="tooltip" data-placement="left" title="Edit contact"">
+            <i class="fa fa-phone"></i>
+        </button>
+      </a>
+      <a href="/towit/update_contact/{{ contact.id }}">
+        <button class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Call contact"">
+            <i class="fa fa-pencil"></i>
+        </button>
+      </a>
+      <a href="/towit/delete_contact/{{ contact.id }}">
+        <button class="btn btn-danger float-right data-toggle="tooltip" data-placement="left" title="Delete contact"">
+            <i class="fa fa-trash"></i>
+        </button>
+      </a>
+    </h3>    
+    <hr class="mt-0 mb-4">
+    
+{% endblock %} 
