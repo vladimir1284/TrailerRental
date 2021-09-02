@@ -4,7 +4,11 @@
 
 {% block table_head %}
 {% endblock %} 
-    
+
+
+{% block nav %}
+    <li><a href="/towit/contacts/">Contacts</a></li>
+{% endblock %}     
 	
 {% block content %}
     <h3 class="mt-3">
@@ -42,7 +46,7 @@
 		        <tr>
 				  <td> <a class="trailer-link" href="/towit/trailer/{{ trailer.id }}"> {{ trailer.name }} </a></td>
 				  <td> {{ trailer.type }}</td>
-				  <td> {{ trailer.length }}'</td>
+				  <td> {{ trailer.size }}'</td>
 				  <td> {{ trailer.owner }}</td>
 				  <td> {{ trailer.status }}</td>
 		        </tr>	    

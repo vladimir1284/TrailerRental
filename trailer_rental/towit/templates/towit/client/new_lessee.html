@@ -1,0 +1,15 @@
+{% extends 'towit/client/base_form_clients.html' %}
+
+{% block nav %}
+    <li><a href="/towit/contacts/">Contacts</a></li>
+    <li><a href="/towit/trailers/">Trailers</a></li>
+{% endblock %}  
+
+{% block title %}
+        Lessee data 
+        <a href="/towit/contacts/">
+            <button class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Rent a trailer"">
+	            Select contact
+	        </button>
+        </a>
+{% endblock %}

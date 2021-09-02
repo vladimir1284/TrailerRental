@@ -136,13 +136,15 @@ class Trailer(models.Model):
                             on_delete=models.CASCADE,
                             related_name='title_stage')
     # title_file = models.FileField(upload_to='titles', blank=True)
-    title_file = models.FileField(upload_to='towit/titles', blank=True, storage=gd_storage)
+    title_file = models.FileField(upload_to='towit/titles', blank=True, 
+                                  storage=gd_storage)
     title_note = models.TextField(blank=True)
     sticker = models.ForeignKey(Stage,
                             on_delete=models.CASCADE,
                             related_name='sticker_stage')
     # sticker_file = models.FileField(upload_to='stickers', blank=True)
-    sticker_file = models.FileField(upload_to='towit/stickers', blank=True, storage=gd_storage)
+    sticker_file = models.FileField(upload_to='towit/stickers', blank=True, 
+                                    storage=gd_storage)
     sticker_note = models.TextField(blank=True)
     
     def get_absolute_url(self):
@@ -184,13 +186,18 @@ class Person(models.Model):
         return self.name
  
 class Lessee(Person):    
-    insurance_number = models.CharField(max_length=150)
-    insurance_file = models.FileField(upload_to='towit/insurances', storage=gd_storage)
-    license_number = models.CharField(max_length=150)
-    license_file = models.FileField(upload_to='towit/licenses', storage=gd_storage)    
+    insurance_number = models.CharField(max_length=150, blank=True)
+    insurance_file = models.FileField(upload_to='towit/insurances', 
+                                      storage=gd_storage, blank=True)
+    license_number = models.CharField(max_length=150, blank=True)
+    license_file = models.FileField(upload_to='towit/licenses', 
+                                    storage=gd_storage, blank=True)    
     
     def __str__(self):
         return self.name    
+    
+    def get_absolute_url(self):
+        return reverse('new_contract', kwargs={'lessee_id': self.lessee.id})
  
 class Contact(Person): 
     interest = models.ForeignKey(Interest,
@@ -213,7 +220,7 @@ class Contact(Person):
         return self.name
     
     def get_absolute_url(self):
-        return reverse('contacts')
+        return reverse('contact_detail', kwargs={'id': self.id})
  
 class Lease(models.Model):
     lessee = models.ForeignKey(Lessee,
@@ -226,7 +233,8 @@ class Lease(models.Model):
                             on_delete=models.CASCADE,
                             related_name='lease_stage')      
     location = models.CharField(max_length=500)
-    location_file = models.FileField(upload_to='towit/locations', storage=gd_storage)    
+    location_file = models.FileField(upload_to='towit/locations', blank=True,
+                                     storage=gd_storage)    
     effective_date = models.DateField()
     contract_end_date = models.DateField()
     number_of_payments = models.IntegerField()
@@ -246,6 +254,9 @@ class Lease(models.Model):
     
     class Meta:
         ordering = ('-effective_date',)
+    
+    def get_absolute_url(self):
+        return reverse('contracts', kwargs={'id': self.id})
     
     
     

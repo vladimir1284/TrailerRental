@@ -133,7 +133,7 @@ GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = os.path.join(BASE_DIR, "trailer-rental-3236
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-LOGIN_REDIRECT_URL = '/towit/trailers/'
+LOGIN_REDIRECT_URL = '/towit/dashboard/'
 
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 

@@ -9,15 +9,21 @@
 {% endblock %} 
 
 {% block content %}    
-    <h3 class="mt-3"> <b> Contacto</b>
+    <h3 class="mt-3"> <b> Contacto </b>
+    
       <a href="tel:{{ contact.phone }}">
-        <button class="btn btn-success data-toggle="tooltip" data-placement="left" title="Edit contact"">
+        <button class="btn btn-success data-toggle="tooltip" data-placement="left" title="Call contact"">
             <i class="fa fa-phone"></i>
         </button>
       </a>
       <a href="/towit/update_contact/{{ contact.id }}">
-        <button class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Call contact"">
+        <button class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Edit contact"">
             <i class="fa fa-pencil"></i>
+        </button>
+      </a>
+      <a href="/towit/new_lessee/{{ contact.id }}">
+        <button class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Rent a trailer"">
+            RENT
         </button>
       </a>
       <a href="/towit/delete_contact/{{ contact.id }}">
@@ -27,5 +33,31 @@
       </a>
     </h3>    
     <hr class="mt-0 mb-4">
+    <div class="card">
+        <div class="card-header">
+		    <div class="row"> 
+		        <h4>{{ contact.name }}</h4>
+		    </div>
+		    <div class="row"> 
+		        <a href="mailto:{{ contact.mail }}">{{ contact.mail }}</a>
+		    </div>
+        </div>
+        <div class="card-body">
+		    <div class="row"> 
+		        <div class="col-4">Interest: <b>{{ contact.interest }}</b></div>
+		        <div class="col-4"><b>{{ contact.interest_date }}</b></div>
+		        <div class="col-4">Term: <b>{{ contact.term }} {{ contact.get_term_unit_display }}</b></div>
+		    </div>
+		    <div class="row" style="margin-bottom: 1em;"> 
+		        <div class="col-4">Type: <b>{{ contact.type }}</b></div>
+		        <div class="col-4">Size <b>{{ contact.size }}'</b></div>
+		        <div class="col-4">Price: <b>${{ contact.price }}</b></div>
+		    </div>
+		    <div class="row text-center"> 
+		        Address: {{ contact.address }}
+		    </div>
+        </div>
+    </div>
+    
     
 {% endblock %} 

@@ -1,11 +1,12 @@
 from django.forms import ModelForm
 from django import forms
-from .models import Trailer, UserProfile, Maintenance, Contact
+from .models import Trailer, UserProfile, Maintenance, Contact, Lessee, Lease
 from .widgets import BootstrapDateTimePickerInput, BootstrapYearPickerInput
 from django.core.files.images import get_image_dimensions
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit, Div
+from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit, Div, HTML
 from crispy_forms.bootstrap import PrependedText, AppendedText
+from towit.models import Status
 
 class TrailerForm(ModelForm):
     class Meta:
@@ -201,12 +202,11 @@ class ContactForm(ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['term_unit'].label = " "
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 '',
-                'name', 'address', 'mail', 'phone', 'interest',
+                'name', 'address', 'mail', 'phone', 
                 Div(
                     Div(
                         'term',
@@ -218,15 +218,183 @@ class ContactForm(ModelForm):
                     ),
                     css_class = 'row'
                 ),
-                'size', 'type', 
-                PrependedText('price', '$', placeholder="Price to client"),
-                'interest_date'
+                Div(
+                    Div(
+                        'interest',
+                        css_class = 'col-5'
+                    ),
+                    Div(
+                        'interest_date',
+                        css_class = 'col-7'
+                    ),
+                    css_class = 'row'
+                ),
+                Div(
+                    Div(
+                        'type',
+                        css_class = 'col-4'
+                    ),
+                    Div(
+                        AppendedText('size',"'"),
+                        css_class = 'col-3'
+                    ),
+                    Div(
+                        PrependedText('price', '$', placeholder="Price to client"),
+                        css_class = 'col-5'
+                    ),
+                    css_class = 'row'
+                )
             ),
             ButtonHolder(
                 Submit('submit', 'Save contact', css_class='btn btn-success')
             )
         )
     
+class LesseeForm(ModelForm):
+    class Meta:
+        model = Lessee    
+        fields = ('name', 'address', 'mail', 'phone', 'insurance_number', 
+                  'insurance_file', 'license_number', 'license_file') 
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                '',
+                'name', 'address', 'mail', 'phone', 
+                Div(
+                    Div(
+                        'license_number',
+                        css_class = 'col-6'
+                    ),
+                    Div(
+                        'license_file',
+                        css_class = 'col-6'
+                    ),
+                    css_class = 'row'
+                ),
+                Div(
+                    Div(
+                        'insurance_number',
+                        css_class = 'col-6'
+                    ),
+                    Div(
+                        'insurance_file',
+                        css_class = 'col-6'
+                    ),
+                    css_class = 'row'
+                ),
+            ButtonHolder(
+                Submit('submit', 'Proceed to rent', css_class='btn btn-success')
+                )
+            )
+        )
+     
+class LeaseForm(ModelForm):
+    class Meta:
+        model = Lease    
+        fields = ('lessee', 'trailer', 'location', 'location_file', 
+                  'effective_date', 'contract_end_date', 'number_of_payments', 
+                  'payment_amount', 'service_charge', 'security_deposit', 
+                  'inspection_date', 'current_condition') 
+        
+    effective_date = forms.DateField(input_formats=['%d/%m/%Y'],  
+        widget=BootstrapDateTimePickerInput(attrs={'placeholder': 'Select a date'}))
+        
+    contract_end_date = forms.DateField(input_formats=['%d/%m/%Y'],  
+        widget=BootstrapDateTimePickerInput(attrs={'placeholder': 'Select a date'}))
+        
+    inspection_date = forms.DateField(input_formats=['%d/%m/%Y'],  
+        widget=BootstrapDateTimePickerInput(attrs={'placeholder': 'Select a date'}))
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)        
+        
+        # Filters
+        free_status = Status.objects.filter(name__icontains="free")[0]
+        self.fields["trailer"].queryset = Trailer.objects.filter(status=free_status)
+        
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Contract terms',
+                Div(
+                    Div(
+                        'lessee',
+                        css_class = 'col-6'
+                    ),
+                    Div(
+                        'trailer',
+                        css_class = 'col-6'
+                    ),
+                    css_class = 'row'
+                ),
+                Div(
+                    Div(
+                        'location',
+                        css_class = 'col-6'
+                    ),
+                    Div(
+                        'location_file',
+                        css_class = 'col-6'
+                    ),
+                    css_class = 'row'
+                ),
+                Div(
+                    Div(
+                        'effective_date',
+                        css_class = 'col-6'
+                    ),
+                    Div(
+                        'contract_end_date',
+                        css_class = 'col-6'
+                    ),
+                    css_class = 'row'
+                ),
+                Div(
+                    Div(
+                        'number_of_payments',
+                        css_class = 'col-6'
+                    ),
+                    Div(
+                        PrependedText('payment_amount', '$'),
+                        css_class = 'col-6'
+                    ),
+                    css_class = 'row'
+                ),
+                Div(
+                    Div(
+                        PrependedText('service_charge', '$'),
+                        css_class = 'col-6'
+                    ),
+                    Div(
+                        PrependedText('security_deposit', '$'),
+                        css_class = 'col-6'
+                    ),
+                    css_class = 'row'
+                )
+            ),
+            Fieldset(
+                'Inspection',
+                HTML('<div id="id_trailer_conditions" class="col-12"></div>'),
+                Div(
+                    Div(
+                        'current_condition',
+                        css_class = 'col-6'
+                    ),
+                    Div(
+                        'inspection_date',
+                        css_class = 'col-6'
+                    ),
+                    css_class = 'row'
+                ),
+            ButtonHolder(
+                Submit('submit', 'Create contract', css_class='btn btn-success')
+                )
+            )
+        )
+       
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile

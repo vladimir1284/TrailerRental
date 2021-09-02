@@ -1,0 +1,65 @@
+{% extends 'towit/base.html' %}
+
+{% block head %}
+    <style>
+        .bot-1em{
+            margin-bottom: 1em;
+        }
+    </style>
+{% endblock %} 
+
+{% block nav %}
+    <li><a href="/towit/contacts/">Contacts</a></li>
+    <li><a href="/towit/trailers/">Trailers</a></li>
+{% endblock %}     
+	
+{% block content %}
+    <div class="row">
+        <div class="card col-6">
+            <div class="card-header">
+            Interested contacts
+            </div>
+                <ul class="list-group list-group-flush">
+                    {% for contact in contacts %}
+                        <li class="list-group-item"><a href="/towit/contact/{{ contact.id }}">{{ contact.name }}</a> {{ contact.interest_date }}</li>
+                    {% endfor %}
+                </ul>
+        </div>   
+        <div class="card col-6">
+	        <div class="card-header">
+	        Closest Maintenances
+	        </div>
+				<ul class="list-group list-group-flush">
+				    {% for maintenance in maintenances %}
+				        <li class="list-group-item"><a href="/towit/trailer/{{ maintenance.trailer.id }}#maintenance_section">{{ maintenance.trailer }}</a> {{ maintenance.date }}</li>
+				    {% endfor %}
+				</ul>
+        </div>        
+    </div>
+    <div class="row bot-1em">
+    </div>    
+    <div class="row">
+        <div class="card col-6">
+            <div class="card-header">
+            Ending contracts
+            </div>
+                <ul class="list-group list-group-flush">
+                    {% for contract in contracts %}
+                        <li class="list-group-item"><a href="/towit/contract/{{ contract.id }}">{{ contract.trailer.name }}</a> {{ contract.contract_end_date }}</li>
+                    {% endfor %}
+                </ul>
+        </div>   
+        <div class="card col-6">
+            <div class="card-header">
+            Free trailers
+            </div>
+                <ul class="list-group list-group-flush">
+                    {% for trailer in trailers %}
+                        {% if trailer.status.name == "Free" %}
+                            <li class="list-group-item"><a href="/towit/trailer/{{ trailer.id }}">{{ trailer.name }}</a> {{ trailer.type }} {{ trailer.size }}'</li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+        </div>        
+    </div>
+{% endblock %} 
