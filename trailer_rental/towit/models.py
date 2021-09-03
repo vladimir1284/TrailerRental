@@ -256,7 +256,7 @@ class Lease(models.Model):
         ordering = ('-effective_date',)
     
     def get_absolute_url(self):
-        return reverse('contracts', kwargs={'id': self.id})
+        return reverse('contract_detail', kwargs={'id': self.id})
     
     
     

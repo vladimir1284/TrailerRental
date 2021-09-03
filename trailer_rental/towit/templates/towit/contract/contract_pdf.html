@@ -1,12 +1,10 @@
-{% extends 'towit/base.html' %}
-
 {% load static %}
-
-{% block head %}
+<head>
    <meta charset="utf-8"/>
    <style>
      .bottom-three-left-two {
          margin-left: 1em;
+        margin-bottom: 2cm;
      }
      
 	.signature {
@@ -14,6 +12,7 @@
 	    margin-left: 2em;
 	}
      .bottom-three {	
+        margin-bottom: 2cm;
      }
      .center {
 	      text-align: center;
@@ -28,76 +27,9 @@
       div.break {
          page-break-before:always;
       }
-    .left-space {
-        margin-left: 1em;
-        margin-right: 0.5em;
-    }
    </style>
-    <script>
-       function deleteContract() {
-            let confirmAction = confirm("Are you sure to delete the current contract?");
-            if (confirmAction) {
-                 window.location = "/towit/delete_contract/{{ contract.id }}";
-            }
-        }
-       function approveContract() {
-            let confirmAction = confirm("Are you sure to approve the contract?\n A pdf copy will be send to the lessee.");
-            if (confirmAction) {
-                 window.location = "/towit/change_contract_stage/{{ contract.id }}/2";
-            }
-        }
-       function finishContract() {
-            let confirmAction = confirm(`Are you sure to finish the contract?\n 
-                                        A signed copy will be send to the lessee.
-                                        An event will be added to the calendar.`);
-            if (confirmAction) {
-                 window.location = "/towit/change_contract_stage/{{ contract.id }}/3";
-            }
-        }
-       function archiveContract() {
-            let confirmAction = confirm(`Are you sure to finish the contract?\n 
-                                        A signed copy will be send to the lessee.
-                                        An event will be added to the calendar.`);
-            if (confirmAction) {
-                 window.location = "/towit/change_contract_stage/{{ contract.id }}/5";
-            }
-        }
-    </script>
-{% endblock %}
-                
-{% block nav %}
-    <li> 
-        <a href="/towit/update_contract/{{ contract.id }}">
-            <button class="btn btn-primary">
-                <i class="fa fa-pencil"></i>
-            </button>
-        </a>
-    </li>
-    <li> 
-        {% if contract.stage.id == 1 %}
-	        <button onclick="approveContract()" class="btn btn-primary left-space">
-	            Approve
-	        </button>
-	    {% else %}
-	        {% if contract.stage.id == 2 %}
-	            <button onclick="finishContract()" class="btn btn-primary left-space">
-	                Finish
-	            </button>
-	        {% else %}
-                <button onclick="archiveContract()" class="btn btn-primary left-space">
-                    Archive
-                </button>
-	        {% endif %}
-	    {% endif %}
-    </li>
-    <li> 
-		<button onclick="deleteContract()" class="btn btn-danger  left-space data-toggle="tooltip" data-placement="left" title="Delete contract"">
-		    <i class="fa fa-trash"></i>
-		</button>
-    </li>
-{% endblock %}  
-
-{% block content %}
+</head>  
+<body>
    <p class="center"><strong>EQUIPMENT</strong><strong> LEASE</strong></p>
 
    <p>This Equipment Lease ("this lease") is made effective as
@@ -212,15 +144,6 @@
    <p><strong>SIGNATORIES</strong>. This inspection report shall be signed by Daniel Hernández Duarte, Jose Ariel Casanova and <mark>{{ contract.lessee.name }}</mark>.</p>
    <p class="bottom-three"><strong>LESSORS</strong>:</p>
 
-    <div class="row">
-    <div class="col-6">
-        {% if True %}
-            <img class="signature" src={% static "pictures/signature.png" %} >
-        {% else %}
-            
-        {% endif %}
-    </div>
-    </div>
    <p>By: _____________________________     Date: ____________________</p>
    <p class="bottom-three-left-two">    Daniel Hernández Duarte</p>
 
@@ -236,4 +159,4 @@
    <p class="bottom-three-left-two"><mark>{{ contract.lessee.name }}</mark></p>
    
    
-{% endblock %} 
+</body>
