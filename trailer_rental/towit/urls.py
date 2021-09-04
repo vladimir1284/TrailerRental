@@ -30,5 +30,5 @@ urlpatterns = [
    path('new_lessee/',  LesseeCreateView.as_view(), name='new_lessee'),
    path('new_contract/<int:lessee_id>/',  LeaseCreateView.as_view(), name='new_contract'),
    # path('trailers/',  generate_pdf, name='trailers'),
-   # path('', index, name='index'),
+    path('', dashboard, name='dashboard'),
 ]

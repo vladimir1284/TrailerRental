@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView
-from .models import Trailer, TrailerPicture, Maintenance, Contact, Lessee, Lease, LeaseStage, HandWriting
+from .models import Trailer, TrailerPicture, Maintenance, Contact, Lessee, Lease, LeaseStage, HandWriting, ContractDocument
 from .forms import TrailerForm, MaintenanceForm, ContactForm, LesseeForm, LeaseForm, HandWritingForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
@@ -11,9 +11,12 @@ from django.template.loader import render_to_string
 from weasyprint import HTML
 import tempfile
 from django.core.mail import EmailMessage
-from io import BytesIO
+from django.conf import settings 
 import re
+import os
 import base64
+from googleapiclient.discovery import build
+from google.oauth2 import service_account
 
 @login_required
 def contact_detail(request, id):
@@ -95,14 +98,7 @@ def change_contract_stage(request, id, stage):
     lease.stage = LeaseStage.objects.get(id=stage)
     lease.save()
     if (stage in (2,3)):
-        # Send a copy by mail
         return generate_pdf(request, id, stage)
-        # signatures = HandWriting.objects.filter(lease=lease)
-        # data = {'contract': lease}
-        # for sign in signatures:
-        #     data.setdefault(sign.position, sign.img.url)
-        # templates_dic = {2: 'contract_pdf', 3: 'contract_pdf_signed'}
-        # return render(request, 'towit/contract/%s.html' % templates_dic[stage], data)
     else:
         return redirect('/towit/contract/' + str(lease.id))
 
@@ -132,9 +128,51 @@ def generate_pdf(request, id, stage):
         response.write(output.read())
         # Send email
         output.seek(0)
-        # send_contract(id, output.read())
-
+        send_contract(id, output.read())
+        if(stage == 3):
+            # Store file
+            output.seek(0)
+            cd = ContractDocument()
+            cd.lease = contract
+            cd.document.save("signed_contract_%s.pdf" % id, output, True)
+            cd.save()
+            # Delete handwritings
+            for sign in signatures:
+                # os.remove(os.path.join(settings.BASE_DIR, sign.img.path))
+                sign.delete()
+            createEvent(contract, cd)
+            
     return response
+
+def createEvent(contract, cd):
+    credentials = service_account.Credentials.from_service_account_file(settings.GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE)
+    SCOPES = ["https://www.googleapis.com/auth/calendar"]
+    scoped_credentials = credentials.with_scopes(SCOPES)
+    service = build("calendar", "v3", credentials=scoped_credentials)
+    event = {
+      'summary': 'Contract: %s termination' % contract.__str__(),
+      'location': contract.location,
+      'description': 'Contract finish alert. Check the details here %s.' % cd.document.url,
+      'start': {
+        'date': contract.contract_end_date.isoformat(),
+        'timeZone': 'America/Los_Angeles',
+      },
+      'end': {
+        'date': contract.contract_end_date.isoformat(),
+        'timeZone': 'America/Los_Angeles',
+      },
+      'reminders': {
+        'useDefault': False,
+        'overrides': [
+          {'method': 'email', 'minutes': 24 * 60},
+          {'method': 'popup', 'minutes': 12 * 60},
+        ],
+      },
+    }
+    
+    print(event)
+
+    event = service.events().insert(calendarId='vladimir.rdguez@gmail.com', body=event).execute()
 
 def send_contract(id, pdf_data):
     lease = Lease.objects.get(id = id)

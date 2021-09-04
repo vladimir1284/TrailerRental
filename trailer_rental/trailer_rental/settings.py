@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'gdstorage',
     'crispy_forms',
+    'django_cleanup',
 ]
 
 MIDDLEWARE = [

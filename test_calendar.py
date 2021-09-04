@@ -76,29 +76,30 @@ def create_event():
         # )
         # .execute()
     # )
-    event = {
-              'summary': 'Google I/O 2015',
-              'location': '800 Howard St., San Francisco, CA 94103',
-              'description': 'A chance to hear more about Google\'s developer products.',
-              'start': {
-                'dateTime': '2021-08-28T09:00:00-07:00',
-                'timeZone': 'America/Los_Angeles',
-              },
-              'end': {
-                'dateTime': '2021-08-28T17:00:00-07:00',
-                'timeZone': 'America/Los_Angeles',
-              },
-              'recurrence': [
-                'RRULE:FREQ=DAILY;COUNT=2'
-              ],
-              'reminders': {
-                'useDefault': False,
-                'overrides': [
-                  {'method': 'email', 'minutes': 24 * 60},
-                  {'method': 'popup', 'minutes': 10},
-                ],
-              },
-            }
+    # event = {
+              # 'summary': 'Google I/O 2015',
+              # 'location': '800 Howard St., San Francisco, CA 94103',
+              # 'description': 'A chance to hear more about Google\'s developer products.',
+              # 'start': {
+                # 'dateTime': '2021-09-28T09:00:00-07:00',
+                # 'timeZone': 'America/Los_Angeles',
+              # },
+              # 'end': {
+                # 'dateTime': '2021-09-28T17:00:00-07:00',
+                # 'timeZone': 'America/Los_Angeles',
+              # },
+              # 'recurrence': [
+                # 'RRULE:FREQ=DAILY;COUNT=2'
+              # ],
+              # 'reminders': {
+                # 'useDefault': False,
+                # 'overrides': [
+                  # {'method': 'email', 'minutes': 24 * 60},
+                  # {'method': 'popup', 'minutes': 10},
+                # ],
+              # },
+            # }
+    event = {'summary': 'Contract: El primero -> Ernesto Quintanilla termination', 'location': 'Somewhere', 'description': 'Contract finish alert. Check the details here https://drive.google.com/uc?id=1qzZQvUsP1OE2QC-lFqM4gq88yYbJGGea&export=download.', 'start': {'date': '2022-05-11', 'timeZone': 'America/Los_Angeles'}, 'end': {'date': '2022-05-11', 'timeZone': 'America/Los_Angeles'}, 'reminders': {'useDefault': False, 'overrides': [{'method': 'email', 'minutes': 1440}, {'method': 'popup', 'minutes': 720}]}}
 
     event = service.events().insert(calendarId='vladimir.rdguez@gmail.com', body=event).execute()
     print('Event created: %s' % (event.get('htmlLink')))
@@ -194,8 +195,8 @@ def send_message(service, user_id, message):
 
 
       
-service = buildMailService()        
-message = create_message_with_attachment("trailerrentalweb@gmail.com", "vladimir.rdguez@gmail.com", "test", "Hola mundo con adjunto!", "vladimir.pdf")
-send_message(service, 'me', message)
+#service = buildMailService()        
+#message = create_message_with_attachment("trailerrentalweb@gmail.com", "vladimir.rdguez@gmail.com", "test", "Hola mundo con adjunto!", "vladimir.pdf")
+#send_message(service, 'me', message)
 
-#create_event()
+create_event()
