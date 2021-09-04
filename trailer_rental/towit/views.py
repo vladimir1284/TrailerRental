@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView
-from .models import Trailer, TrailerPicture, Maintenance, Contact, Lessee, Lease, LeaseStage
-from .forms import TrailerForm, MaintenanceForm, ContactForm, LesseeForm, LeaseForm
+from .models import Trailer, TrailerPicture, Maintenance, Contact, Lessee, Lease, LeaseStage, HandWriting
+from .forms import TrailerForm, MaintenanceForm, ContactForm, LesseeForm, LeaseForm, HandWritingForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.http import JsonResponse
@@ -11,21 +11,44 @@ from django.template.loader import render_to_string
 from weasyprint import HTML
 import tempfile
 from django.core.mail import EmailMessage
+from io import BytesIO
+import re
+import base64
 
 @login_required
 def contact_detail(request, id):
     contact = Contact.objects.get(id=id)
     return render(request, 'towit/client/contact.html', {'contact': contact})
 
-@login_required
-def capture_signature(request, lease_id, position):
-    return render(request, 'towit/contract/signature.html', {'lease_id': lease_id,
-                                                             'position': position})
+class HandWritingCreateView(LoginRequiredMixin,CreateView):
+    model = HandWriting
+    form_class = HandWritingForm
+    template_name = 'towit/contract/signature.html' 
+    
+    def get_initial(self):
+        return {'lease': self.kwargs['lease_id'],
+                'position': self.kwargs['position']}  
+    
+    def form_valid(self, form):
+        print(type(form.instance))
+        datauri = str(form.instance.img)
+        image_data = re.sub("^data:image/png;base64,", "", datauri)
+        image_data = base64.b64decode(image_data)
+        with tempfile.NamedTemporaryFile(delete=True) as output:
+            output.write(image_data)
+            output.flush()
+            output = open(output.name, 'rb')
+            form.instance.img.save("hand_writing.png", output, True)
+        return super(HandWritingCreateView, self).form_valid(form)
 
 @login_required
 def contract_detail(request, id):
     contract = Lease.objects.get(id=id)
-    return render(request, 'towit/contract/contract_detail.html', {'contract': contract})
+    signatures = HandWriting.objects.filter(lease=contract)
+    data = {'contract': contract}
+    for sign in signatures:
+        data.setdefault(sign.position, sign.img.url)
+    return render(request, 'towit/contract/contract_detail.html', data)
 
 @login_required
 def dashboard(request):
@@ -71,20 +94,31 @@ def change_contract_stage(request, id, stage):
     lease = Lease.objects.get(id=id)
     lease.stage = LeaseStage.objects.get(id=stage)
     lease.save()
-    if (stage == 2):
+    if (stage in (2,3)):
         # Send a copy by mail
-        return generate_pdf(request, id)
+        return generate_pdf(request, id, stage)
+        # signatures = HandWriting.objects.filter(lease=lease)
+        # data = {'contract': lease}
+        # for sign in signatures:
+        #     data.setdefault(sign.position, sign.img.url)
+        # templates_dic = {2: 'contract_pdf', 3: 'contract_pdf_signed'}
+        # return render(request, 'towit/contract/%s.html' % templates_dic[stage], data)
     else:
         return redirect('/towit/contract/' + str(lease.id))
 
 
-def generate_pdf(request, id):
+def generate_pdf(request, id, stage):
     contract = Lease.objects.get(id=id)
 
     """Generate pdf."""
     # Rendered
-    html_string = render_to_string('towit/contract/contract_pdf.html', {'contract': contract})
-    html = HTML(string=html_string)
+    signatures = HandWriting.objects.filter(lease=contract)
+    data = {'contract': contract}
+    for sign in signatures:
+        data.setdefault(sign.position, sign.img.url)
+    templates_dic = {2: 'contract_pdf', 3: 'contract_pdf_signed'}
+    html_string = render_to_string('towit/contract/%s.html' % templates_dic[stage], data)
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
     result = html.write_pdf()
 
     # Creating http response
@@ -98,7 +132,7 @@ def generate_pdf(request, id):
         response.write(output.read())
         # Send email
         output.seek(0)
-        send_contract(id, output.read())
+        # send_contract(id, output.read())
 
     return response
 

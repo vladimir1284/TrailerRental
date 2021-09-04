@@ -4,6 +4,7 @@ from gdstorage.storage import GoogleDriveStorage
 from django.template.defaultfilters import default
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.shortcuts import redirect
 
 # Define Google Drive Storage
 gd_storage = GoogleDriveStorage()
@@ -157,8 +158,8 @@ class TrailerPicture(models.Model):
     trailer = models.ForeignKey(Trailer,
                             on_delete=models.CASCADE,
                             related_name='trailer_picture')
-    # image = models.FileField(upload_to='pictures')
-    image = models.FileField(upload_to='towit/pictures', storage=gd_storage)
+    # image = models.ImageField(upload_to='pictures')
+    image = models.ImageField(upload_to='towit/pictures', storage=gd_storage)
 
 class Maintenance(models.Model):
     trailer = models.ForeignKey(Trailer,
@@ -256,10 +257,27 @@ class Lease(models.Model):
         ordering = ('-effective_date',)
     
     def get_absolute_url(self):
-        return reverse('contract_detail', kwargs={'id': self.id})
+        return reverse('contract_detail', kwargs={'id': self.id})    
     
+
+class ContractDocument(models.Model):
+    lease = models.ForeignKey(Lease,
+                            on_delete=models.CASCADE,
+                            related_name='contract_document')    
+    document = models.FileField(upload_to='towit/contracts', storage=gd_storage)
+
+class HandWriting(models.Model):
+    lease = models.ForeignKey(Lease,
+                            on_delete=models.CASCADE,
+                            related_name='hand_writing')
+    position = models.CharField(max_length=50)    
+    img = models.ImageField(upload_to='signatures')
     
+    def __str__(self):
+        return self.lease.__str__() + "-" + self.position
     
+    def get_absolute_url(self):
+        return reverse('contract_detail', kwargs={'id': self.lease.id}) + '#contract_detail_sign'
     
     
     

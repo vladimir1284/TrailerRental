@@ -1,6 +1,6 @@
 from django.forms import ModelForm
 from django import forms
-from .models import Trailer, UserProfile, Maintenance, Contact, Lessee, Lease
+from .models import Trailer, UserProfile, Maintenance, Contact, Lessee, Lease, HandWriting
 from .widgets import BootstrapDateTimePickerInput, BootstrapYearPickerInput
 from django.core.files.images import get_image_dimensions
 from crispy_forms.helper import FormHelper
@@ -190,6 +190,13 @@ class MaintenanceForm(ModelForm):
         
     date = forms.DateField(input_formats=['%d/%m/%Y'],  
         widget=BootstrapDateTimePickerInput(attrs={'placeholder': 'Select a date'}))
+    
+class HandWritingForm(ModelForm):
+    class Meta:
+        model = HandWriting    
+        fields = ('img', 'position', 'lease') 
+        
+    img = forms.CharField(max_length=20000)
     
 class ContactForm(ModelForm):
     class Meta:

@@ -3,16 +3,21 @@
    <meta charset="utf-8"/>
    <style>
      .bottom-three-left-two {
-         margin-left: 1em;
-        margin-bottom: 2cm;
+         margin-left: 2em;
+         margin-top: 1em;
      }
-     
+    .date {
+        margin-bottom: -2.2em;
+        margin-left: 0em;
+        max-width: 175px; 
+    }     
 	.signature {
-	    margin-bottom: -3.70em;
-	    margin-left: 2em;
+	    margin-bottom: -2.5em;
+	    margin-left: 0em;
+        max-width: 200px;
 	}
      .bottom-three {	
-        margin-bottom: 2cm;
+        margin-bottom: 0em;
      }
      .center {
 	      text-align: center;
@@ -32,7 +37,7 @@
 <body>
 {% include 'towit/contract/contract_body.html' %}
 
-{% include 'towit/contract/empty_signatures_and_date.html' %}
+{% include 'towit/contract/ready_signatures_and_date.html' %}
 
 
    <div class="break"></div>
@@ -43,7 +48,7 @@
    <p>Email: <mark>{{ contract.lessee.mail }}</mark></p>
 
     {% include 'towit/contract/trailer_condition_report.html' %}  
-    {% include 'towit/contract/empty_signatures_and_date.html' %}
+    {% include 'towit/contract/ready_signatures_and_date.html' %}
    
    
 </body>

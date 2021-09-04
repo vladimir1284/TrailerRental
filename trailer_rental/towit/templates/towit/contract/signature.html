@@ -49,15 +49,24 @@
 					</div>
                 </div>
 
-                <div class="col-12 text-center"> Please, insert your signature</div>
+                <div class="col-12 text-center"> Please, insert
+                {%if form.position.value.0 == "s" %}
+                    your signature.
+                {% else %}
+                    the date.
+                {% endif %}
+                </div>
 			<script>
 				zkSignature.capture();
 			</script>
 
 			<br />
-			<img id="saveSignature" alt="Saved image png"/>
-
-			<form>
+			<form id="form1" method="post" enctype="multipart/form-data">
+				{% csrf_token %}
+				<div style="display: none">
+				 {{ form.as_p }}
+				</div>			
+            </form>
 			    <div class="row">
                     <div class="col-5 text-center">
 						<button class="btn btn-danger" type="button" onclick="zkSignature.clear()">
@@ -65,7 +74,7 @@
 						</button>
                     </div>
                     <div class="col-2 text-center">
-                        <a href="/towit/contract/{{ lease_id }}">
+                        <a href="/towit/contract/{{ form.lease.value }}#{{ form.position.value }}">
 				            <button class="btn btn-primary float-right">
 				                <i class="fa fa-arrow-left"></i>
 				            </button>
@@ -77,7 +86,6 @@
 						</button>
                     </div>
 				</div>
-			</form>
 		</div>
     </body>
 </html>
