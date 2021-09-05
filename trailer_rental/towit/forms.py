@@ -97,7 +97,17 @@ class TrailerForm(ModelForm):
                     ),
                     css_class = 'row'
                 ),
-                'bed_type', 
+                Div(
+                    Div(
+                        'bed_type',
+                        css_class = 'col-6'
+                    ),
+                    Div(
+                        'pictures',
+                        css_class = 'col-6'
+                    ),
+                    css_class = 'row'
+                ),
                 'bed_comments',
                 'electrical_instalation'
             ),
