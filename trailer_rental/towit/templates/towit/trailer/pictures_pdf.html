@@ -1,0 +1,8 @@
+    <style>
+    img {
+        width: 6.5in;
+      }
+    </style>
+    {% for img in images %}        
+        <img src="{{ img.image.url }}" alt="Trailer picture">
+    {% endfor %}

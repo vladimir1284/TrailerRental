@@ -160,6 +160,9 @@ class TrailerPicture(models.Model):
                             related_name='trailer_picture')
     # image = models.ImageField(upload_to='pictures')
     image = models.ImageField(upload_to='towit/pictures', storage=gd_storage)
+    
+    def get_absolute_url(self):
+        return reverse('trailer_detail', kwargs={'id': self.trailer.id}) + '#gallery'
 
 class Maintenance(models.Model):
     trailer = models.ForeignKey(Trailer,
@@ -278,6 +281,22 @@ class HandWriting(models.Model):
     
     def get_absolute_url(self):
         return reverse('contract_detail', kwargs={'id': self.lease.id}) + '#contract_detail_sign'
+
+class Tracker(models.Model):
+    trailer = models.ForeignKey(Trailer,
+                            on_delete=models.CASCADE,
+                            related_name='tracker_trailer')
+    last_update = models.DateTimeField(blank=True, null=True)
+    emei = models.IntegerField()
+    device_password = models.CharField(max_length=15, default="123456")
+    phone_number = models.CharField(max_length=15)
+    phone_password = models.CharField(max_length=15)
+    line_credit = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    latitude = models.FloatField(blank=True, null=True)
+    
+    def get_absolute_url(self):
+        return reverse('trailer_detail', kwargs={'id': self.trailer.id})
     
     
     

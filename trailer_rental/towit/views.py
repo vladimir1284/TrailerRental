@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView
-from .models import Trailer, TrailerPicture, Maintenance, Contact, Lessee, Lease, LeaseStage, HandWriting, ContractDocument
-from .forms import TrailerForm, MaintenanceForm, ContactForm, LesseeForm, LeaseForm, HandWritingForm
+from .models import *
+from .forms import *
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.http import JsonResponse
@@ -22,6 +22,28 @@ from google.oauth2 import service_account
 def contact_detail(request, id):
     contact = Contact.objects.get(id=id)
     return render(request, 'towit/client/contact.html', {'contact': contact})
+
+class TrailerPictureCreateView(LoginRequiredMixin,CreateView):
+    model = TrailerPicture
+    form_class = TrailerPictureForm
+    template_name = 'towit/trailer/new_picture.html' 
+    
+    def get_initial(self):
+        return {'trailer': self.kwargs['trailer_id']}  
+
+class TrackerUpdateView(LoginRequiredMixin,UpdateView):
+    model = Tracker
+    form_class = TrackerForm
+    template_name = 'towit/trailer/new_tracker.html' 
+
+class TrackerCreateView(LoginRequiredMixin,CreateView):
+    model = Tracker
+    form_class = TrackerForm
+    template_name = 'towit/trailer/new_tracker.html' 
+    
+    def get_initial(self):
+        return {'trailer': self.kwargs['trailer_id']}  
+    
 
 class HandWritingCreateView(LoginRequiredMixin,CreateView):
     model = HandWriting
@@ -68,6 +90,26 @@ def dashboard(request):
 def trailers(request):
     trailers = Trailer.objects.all()
     return render(request, 'towit/trailer/trailers.html', {'trailers': trailers})
+ 
+@login_required
+def share_images(request, ids):
+    pks = list(map(int, ids.split(',')[:-1]))
+    images = TrailerPicture.objects.filter(pk__in=pks) 
+    trailers = Trailer.objects.all()
+    html_string = render_to_string('towit/trailer/pictures_pdf.html', {'images': images})
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    result = html.write_pdf()
+
+    # Creating http response
+    response = HttpResponse(content_type='application/pdf;')
+    response['Content-Disposition'] = 'inline; filename=trailer_pictures.pdf'
+    response['Content-Transfer-Encoding'] = 'binary'
+    with tempfile.NamedTemporaryFile(delete=True) as output:
+        output.write(result)
+        output.flush()
+        output = open(output.name, 'rb')
+        response.write(output.read())
+    return response
 
 @login_required
 def contacts(request):
@@ -87,10 +129,13 @@ def maintenances(request, trailer_id):
                                                               'trailer': trailer})
 
 @login_required
-def delete_trailer_image(request, id):
-    img = TrailerPicture.objects.get(id=id)
-    img.delete()
-    return redirect('/towit/trailer/' + str(img.trailer.id))
+def delete_trailer_images(request, ids):
+    pks = list(map(int, ids.split(',')[:-1]))
+    images = TrailerPicture.objects.filter(pk__in=pks) 
+    trailer_id = images[0].trailer.id
+    for img in images:
+        img.delete()
+    return redirect('/towit/trailer/' + str(trailer_id))
 
 @login_required
 def change_contract_stage(request, id, stage):
@@ -136,10 +181,10 @@ def generate_pdf(request, id, stage):
             cd.lease = contract
             cd.document.save("signed_contract_%s.pdf" % id, output, True)
             cd.save()
-            # Delete handwritings
-            for sign in signatures:
-                # os.remove(os.path.join(settings.BASE_DIR, sign.img.path))
-                sign.delete()
+            # # Delete handwritings
+            # for sign in signatures:
+            #     # os.remove(os.path.join(settings.BASE_DIR, sign.img.path))
+            #     sign.delete()
             createEvent(contract, cd)
             
     return response
@@ -169,10 +214,8 @@ def createEvent(contract, cd):
         ],
       },
     }
-    
-    print(event)
 
-    event = service.events().insert(calendarId='vladimir.rdguez@gmail.com', body=event).execute()
+    event = service.events().insert(calendarId='towithouston@gmail.com', body=event).execute()
 
 def send_contract(id, pdf_data):
     lease = Lease.objects.get(id = id)
@@ -186,7 +229,7 @@ def send_contract(id, pdf_data):
             ['vladimir.rdguez@gmail.com', 
              'towithouston@gmail.com',
              lease.lessee.mail],
-            reply_to=['trailerrentalweb@gmail.com'],
+            reply_to=['towithouston@gmail.com'],
             headers={'Message-ID': 'TOWIT'},
         )
     email.attach('contract_for_signature.pdf', pdf_data, 'application/pdf')
@@ -200,6 +243,16 @@ def delete_trailer(request, id):
     except:
         pass
     return redirect('/towit/trailers/')
+    
+@login_required
+def delete_tracker(request, id):
+    try:
+        tracker = Tracker.objects.get(id=id)
+        trailer_id = tracker.trailer.id
+        tracker.delete()
+        return redirect('/towit/trailer/%i' % trailer_id)
+    except:
+        return redirect('/towit/trailers/')
 
 @login_required
 def delete_contract(request, id):
@@ -234,10 +287,15 @@ def trailer_detail(request, id):
         mtn = Maintenance.objects.filter(trailer=trailer).order_by("-date")[0]
     except:
         mtn = ""
+    try:
+        tracker = Tracker.objects.filter(trailer=trailer).order_by("-last_update")[0]
+    except:
+        tracker = ""
     images = TrailerPicture.objects.filter(trailer = trailer)[:]
     tax = int(trailer.tax_price*0.06)
     return render(request, 'towit/trailer/trailer.html', {'trailer': trailer,
                                                           'images': images,
+                                                          'tracker': tracker,
                                                           'tax': tax,
                                                           'maintenance': mtn})
 

@@ -1,6 +1,6 @@
 from django.forms import ModelForm
 from django import forms
-from .models import Trailer, UserProfile, Maintenance, Contact, Lessee, Lease, HandWriting
+from .models import *
 from .widgets import BootstrapDateTimePickerInput, BootstrapYearPickerInput
 from django.core.files.images import get_image_dimensions
 from crispy_forms.helper import FormHelper
@@ -208,6 +208,24 @@ class HandWritingForm(ModelForm):
         
     img = forms.CharField(max_length=20000)
     
+class TrailerPictureForm(ModelForm):
+    class Meta:
+        model = TrailerPicture    
+        fields = ('image','trailer') 
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                '',
+                'image','trailer'
+            ),
+            ButtonHolder(
+                Submit('submit', 'Add', css_class='btn btn-success')
+            )
+        )    
+    
 class ContactForm(ModelForm):
     class Meta:
         model = Contact    
@@ -307,6 +325,51 @@ class LesseeForm(ModelForm):
                 )
             )
         )
+     
+class TrackerForm(ModelForm):
+    class Meta:
+        model = Tracker    
+        fields = ('trailer', 'emei',  'device_password',  
+                  'phone_number', 'phone_password')         
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)                
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Tracker device',
+                Div(
+                    Div(
+                        'emei',
+                        css_class = 'col-6'
+                    ),
+                    Div(
+                        'device_password',
+                        css_class = 'col-6'
+                    ),
+                    css_class = 'row'
+                )
+            ),
+            Fieldset(
+                'SIM',
+                Div(
+                    Div(
+                        'phone_number',
+                        css_class = 'col-6'
+                    ),
+                    Div(
+                        'phone_password',
+                        css_class = 'col-6'
+                    ),
+                    css_class = 'row'
+                ),
+            'trailer',
+            ButtonHolder(
+                Submit('submit', 'Register tracker', css_class='btn btn-success')
+                )
+            )
+        )
+       
      
 class LeaseForm(ModelForm):
     class Meta:

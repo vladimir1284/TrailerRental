@@ -1,6 +1,7 @@
 {% extends 'towit/base.html' %}
 
 {% load static %}
+{% load tz %}
 
 {% block head %}
     <style>
@@ -18,42 +19,73 @@
 	.bottom-space {
 	    margin-bottom: 1em;
 	}
+
+	#trigger {
+	  display: none;
+	}
+	.checker {
+        object-fit: cover;
+        object-position: center;
+        height: 200px;
+        width: 200px;
+      }
+    {% for img in images %}   
+		#trigger-{{ img.id }}:checked + .img-border {
+		  border:3px solid blue;
+		}
+	{% endfor %}
     </style>
-    
+        
     <script>
-       function myFunction() {
+    
+        function getSelectedImages(){
           /* Get the text field */
-          let imgs =  document.getElementsByClassName("d-block");
+          let imgs =  document.getElementsByClassName("img-cb");
         
           /* Select the text field */
           let urls = "";
           
           for (let item of imgs) {
-			    urls += item.src + "\n";
-		  }
-          
-          console.log(urls);
-        
-          /* Copy the text inside the text field */
-          navigator.clipboard.writeText(urls);
-          
-          /* Alert the copied text */
-          alert("Gallery copied to clipboard");
+                if(item.checked){
+                    urls += item.value + ",";
+                }
+          }
+          return urls
+        }
+    
+        function shareImages() {  
+            let imgs = getSelectedImages();
+            if (imgs.length > 0){
+                window.open("/towit/share_images/"+imgs, '_blank');   
+            } else {
+                alert("Please, select at least one picture!")
+            }
         }
         
-        function deletePicture() {
-			$('.carousel').carousel({
-				  pause: true
-				});
-			let confirmAction = confirm("Are you sure to delete the current picture?");
-			if (confirmAction) {
-			     const img = $(".active.carousel-item")[0];
-			     window.location = "/towit/delete_trailer_image/"+img.id;
-			} else {			 
-	            $('.carousel').carousel({
-	                  pause: "hover"
-	                });
-			}
+        function deletePictures() {        
+            let imgs = getSelectedImages();
+            if (imgs.length > 0){
+				let confirmAction = confirm("Are you sure to delete the selected pictures?");
+				if (confirmAction) {
+				     window.location = "/towit/delete_trailer_images/"+imgs;
+				}
+            } else {
+                alert("Please, select at least one picture!")
+            }
+        }
+        
+        function deleteTrailer() {
+            let confirmAction = confirm("Are you sure to delete the current trailer?");
+            if (confirmAction) {
+                 window.location = "/towit/delete_trailer/{{ trailer.id }}";
+            }
+        }
+        
+        function deleteTracker() {
+            let confirmAction = confirm("Are you sure to delete the tracker?");
+            if (confirmAction) {
+                 window.location = "/towit/delete_tracker/{{ tracker.id }}";
+            }
         }
     </script>
 {% endblock %} 
@@ -69,18 +101,51 @@
             <i class="fa fa-pencil"></i>
         </button>
       </a>      
-      <a href="/towit/new_lessee/trailer/{{ trailer.id }}">
-        <button class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Rent this trailer"">
-            RENT
-        </button>
-      </a>
-      <a href="/towit/delete_trailer/{{ trailer.id }}">
-        <button class="btn btn-danger float-right data-toggle="tooltip" data-placement="left" title="Delete trailer"">
-            <i class="fa fa-trash"></i>
-        </button>
-      </a>
+    {% if trailer.status.name != "Rented" %}
+	    <a href="/towit/new_lessee/trailer/{{ trailer.id }}">
+	        <button class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Rent this trailer"">
+	            RENT
+	        </button>
+	    </a>
+	{% endif %}
+	    <button onclick="deleteTrailer()" class="btn btn-danger float-right data-toggle="tooltip" data-placement="left" title="Delete trailer"">
+	        <i class="fa fa-trash"></i>
+	    </button>
     </h3>    
     <hr class="mt-0 mb-4">
+    
+    <!-- Tracker -->
+    <h4 class="mt-3">Tracking </b>
+        {% if tracker %}
+            <a href="/towit/update_tracker/{{ tracker.id }}">
+		        <button onclick="shareImages()" class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Copy to clipboard"">
+		            <i class="fa fa-pencil"></i>
+		        </button>
+            </a>   
+        {% else %}
+	        <a href="/towit/new_tracker/{{ trailer.id }}">
+	            <button class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Edit trailer"">
+	                <i class="fa fa-plus"></i>
+	            </button>
+	        </a>   
+	    {% endif %}
+        <button onclick="deleteTracker()" class="btn btn-danger float-right data-toggle="tooltip" data-placement="left" title="Remove current picture"">
+            <i class="fa fa-trash"></i>
+        </button>
+    </h4>  
+    <hr class="mt-0 mb-4">
+    {% if tracker %}
+        <div class="col-12 text-center">Updated: <b> {{ tracker.last_update|localtime }} </b></div>
+	    <div class="row text-center">
+	       <div class="col-6 col-md-6">
+	           <a href="http://maps.google.com/maps?f=q&q={{ tracker.latitude }},{{ tracker.longitude }}&z=16">
+	               <i class="fa fa-map-marker"></i> 
+	               lat: {{ tracker.latitude|floatformat:2 }}°, lon: {{ tracker.longitude|floatformat:2 }}° 
+	           </a>
+	       </div>
+	      <div class="col-6 col-md-6">Credit: <b> ${{ tracker.line_credit|floatformat:2 }} </b></div>
+	    </div>
+    {% endif %}
     
     <!-- Specifications -->
     <h4 class="mt-3">Specifications </b></h4>  
@@ -125,7 +190,6 @@
 		        Title: 
 		        {% if trailer.title_file != "" %}
 		            <a href="{{ trailer.title_file.url }}"><b> {{ trailer.title }} </b></a>
-{#                    <a href=""><b> {{ trailer.title }} </b></a>#}
 		        {% else %}
 		            <b> {{ trailer.title }} </b>
 		        {% endif %}
@@ -139,7 +203,6 @@
 	            Sticker: 
 	            {% if trailer.sticker_file != "" %}
                   <a href="{{ trailer.sticker_file.url }}"><b> {{ trailer.sticker }} </b></a>
-{#                    <a href=""><b> {{ trailer.sticker }} </b></a>#}
 	            {% else %}
 	                <b> {{ trailer.sticker }} </b>
 	            {% endif %}             
@@ -177,38 +240,28 @@
     
     
     <!-- Gallery -->    
-    <h4 class="mt-3">Gallery </b>
-        <button onclick="myFunction()" class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Copy to clipboard"">
-		    <i class="fa fa-clipboard"></i>
+    <h4 id="gallery" class="mt-3">Gallery </b>
+        <button onclick="shareImages()" class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Copy to clipboard"">
+		    <i class="fa fa-share"></i>
 	    </button>
-        <button onclick="deletePicture()" class="btn btn-danger float-right data-toggle="tooltip" data-placement="left" title="Remove current picture"">
+		<a href="/towit/new_picture/{{ trailer.id }}">
+			<button class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Edit trailer"">
+			    <i class="fa fa-plus"></i>
+			</button>
+		</a>   
+        <button onclick="deletePictures()" class="btn btn-danger float-right data-toggle="tooltip" data-placement="left" title="Remove current picture"">
             <i class="fa fa-trash"></i>
         </button>
     </h4>  
     <hr class="mt-0 mb-4">
-    
-    <div id="carouselTrailerPictures" class="carousel slide" data-ride="carousel">
-	  <ol class="carousel-indicators">
-	   {% for img in images %}
-            <li data-target="#carouselTrailerPictures" data-slide-to="{{ forloop.counter0 }}"></li>
-       {% endfor %}
-	  </ol>
-	  <div class="carousel-inner">
-	   {% for img in images %}	       
-		    <div id={{ img.id }} class="carousel-item 
-		    {% if forloop.counter0 == 0 %}
-               active
-            {% endif %} ">
-		      <img class="d-block w-100" src="{{ img.image.url }}" alt="Slide">
-		    </div>
-	   {% endfor %}
-	  <a class="carousel-control-prev" href="#carouselTrailerPictures" role="button" data-slide="prev">
-	    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-	    <span class="sr-only">Previous</span>
-	  </a>
-	  <a class="carousel-control-next" href="#carouselTrailerPictures" role="button" data-slide="next">
-	    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-	    <span class="sr-only">Next</span>
-	  </a>
-	</div>
+    <div class="row col-12">
+    {% for img in images %}        
+	    <div class="col-6 col-md-4 text-center">
+			<input value={{ img.id }} id="trigger-{{ img.id }}" type="checkbox" style="display: none;" class="img-cb">
+			<label for="trigger-{{ img.id }}" class="img-border">
+			    <img class="checker" src="{{ img.image.url }}" alt="Trailer picture">
+			</label>
+	    </div>
+    {% endfor %}
+    </div>  
 {% endblock %} 
