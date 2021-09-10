@@ -14,9 +14,9 @@ class TrailerForm(ModelForm):
         fields = ('name', 'type', 'vin', 'year', 'size', 'current_tires_condition',
               'number_of_axles', 'color', 'pictures', 'status', 'bed_type', 
               'bed_comments', 'has_spare_tire', 'number_of_ramps', 'plate_stage',
-              'ramps_material', 'ramps_length', 'electrical_instalation', 
-              'price', 'tax_price', 'owner', 'Legal_owner', 'plate', 
-              'title', 'title_file', 'title_note', 'sticker', 
+              'ramps_material', 'ramps_length', 'electrical_instalation', 'tax',
+              'price', 'tax_price', 'owner', 'Legal_owner', 'plate', 'tire_layers',
+              'title', 'title_file', 'title_note', 'sticker', 'tax', 'plate_file',
               'sticker_file', 'sticker_note') 
         
     year = forms.DateField(input_formats=['%Y',],  
@@ -74,11 +74,15 @@ class TrailerForm(ModelForm):
                 Div(
                     Div(
                         'current_tires_condition',
-                        css_class = 'col-6'
+                        css_class = 'col-5'
                     ),
                     Div(
                         'has_spare_tire',
-                        css_class = 'col-6'
+                        css_class = 'col-4'
+                    ),
+                    Div(
+                        'tire_layers',
+                        css_class = 'col-3'
                     ),
                     css_class = 'row'
                 ),
@@ -127,22 +131,30 @@ class TrailerForm(ModelForm):
                 Div(
                     Div(
                         PrependedText('price', '$'),
-                        css_class = 'col-6'
+                        css_class = 'col-4'
                     ),
                     Div(
                         PrependedText('tax_price', '$'),
-                        css_class = 'col-6'
+                        css_class = 'col-4'
+                    ),
+                    Div(
+                        AppendedText('tax', '%'),
+                        css_class = 'col-4'
                     ),
                     css_class = 'row'
                 ),
                 Div(
                     Div(
                         'plate',
-                        css_class = 'col-6'
+                        css_class = 'col-4'
                     ),
                     Div(
                         'plate_stage',
-                        css_class = 'col-6'
+                        css_class = 'col-4'
+                    ),
+                    Div(
+                        'plate_file',
+                        css_class = 'col-4'
                     ),
                     css_class = 'row'
                 ),
@@ -207,6 +219,24 @@ class HandWritingForm(ModelForm):
         fields = ('img', 'position', 'lease') 
         
     img = forms.CharField(max_length=20000)
+    
+class ContractDocumentForm(ModelForm):
+    class Meta:
+        model = ContractDocument    
+        fields = ('lease','document') 
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                '',
+                'lease','document'
+            ),
+            ButtonHolder(
+                Submit('submit', 'Add', css_class='btn btn-success')
+            )
+        )    
     
 class TrailerPictureForm(ModelForm):
     class Meta:

@@ -69,11 +69,21 @@ class HandWritingCreateView(LoginRequiredMixin,CreateView):
 @login_required
 def contract_detail(request, id):
     contract = Lease.objects.get(id=id)
+    if(contract.stage.id > 2):
+        return redirect('/towit/contract_signed/%i' % id)
     signatures = HandWriting.objects.filter(lease=contract)
     data = {'contract': contract}
     for sign in signatures:
         data.setdefault(sign.position, sign.img.url)
     return render(request, 'towit/contract/contract_detail.html', data)
+
+@login_required
+def contract_detail_signed(request, id):
+    contract = Lease.objects.get(id=id)
+    documents = ContractDocument.objects.filter(lease=contract)
+    return render(request, 'towit/contract/contract_detail_signed.html', 
+                  {'contract': contract,
+                   'documents': documents})
 
 @login_required
 def dashboard(request):
@@ -137,20 +147,45 @@ def delete_trailer_images(request, ids):
         img.delete()
     return redirect('/towit/trailer/' + str(trailer_id))
 
+class ContractDocumentCreateView(LoginRequiredMixin,CreateView):
+    model = ContractDocument
+    form_class = ContractDocumentForm
+    template_name = 'towit/contract/new_contract_document.html' 
+    
+    def get_initial(self):
+        return {'lease': self.kwargs['id']}   
+    
+    def post(self, request, * args, ** kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        if form.is_valid():            
+            cd = form.save()            
+            # Change the contract stage
+            cd.lease.stage = LeaseStage.objects.get(id=3) # Signed
+            cd.lease.save()
+            # Send email
+            send_contract(cd.lease, 
+                          cd.document.open(mode="rb").read(),
+                          'signed_contract')
+            # Create calendar event
+            createEvent(form.instance.lease, cd)
+            return self.form_valid(form) 
+        else:
+            return self.form_invalid(form)
+    
+
 @login_required
 def change_contract_stage(request, id, stage):
     lease = Lease.objects.get(id=id)
     lease.stage = LeaseStage.objects.get(id=stage)
     lease.save()
     if (stage in (2,3)):
-        return generate_pdf(request, id, stage)
+        return generate_pdf(request, lease, stage)
     else:
         return redirect('/towit/contract/' + str(lease.id))
 
 
-def generate_pdf(request, id, stage):
-    contract = Lease.objects.get(id=id)
-
+def generate_pdf(request, contract, stage):
     """Generate pdf."""
     # Rendered
     signatures = HandWriting.objects.filter(lease=contract)
@@ -173,7 +208,7 @@ def generate_pdf(request, id, stage):
         response.write(output.read())
         # Send email
         output.seek(0)
-        send_contract(id, output.read())
+        send_contract(contract, output.read(), 'contract_ready_for_signature')
         if(stage == 3):
             # Store file
             output.seek(0)
@@ -217,8 +252,7 @@ def createEvent(contract, cd):
 
     event = service.events().insert(calendarId='towithouston@gmail.com', body=event).execute()
 
-def send_contract(id, pdf_data):
-    lease = Lease.objects.get(id = id)
+def send_contract(lease, pdf_data, filename):
     body = """
             Dear %s, find attached the contract ready for signature.
             """ % (lease.lessee.name)
@@ -232,7 +266,7 @@ def send_contract(id, pdf_data):
             reply_to=['towithouston@gmail.com'],
             headers={'Message-ID': 'TOWIT'},
         )
-    email.attach('contract_for_signature.pdf', pdf_data, 'application/pdf')
+    email.attach('%s.pdf' % filename, pdf_data, 'application/pdf')
     email.send()
     
 @login_required
@@ -281,7 +315,10 @@ def trailer_json(request, id):
 
 @login_required
 def trailer_detail(request, id):
-    trailer = Trailer.objects.get(id=id)
+    try:
+        trailer = Trailer.objects.get(id=id)
+    except:
+        return redirect('/towit/trailers/')
     print(Maintenance.objects.filter(trailer=trailer).order_by("-date"))
     try:
         mtn = Maintenance.objects.filter(trailer=trailer).order_by("-date")[0]

@@ -99,6 +99,12 @@ class Trailer(models.Model):
                 (3,'50%')),
         default=1,
     )
+    tire_layers = models.PositiveSmallIntegerField(
+        choices=((1,'10'),
+                (2,'14'),
+                (3,'16')),
+        default=1,
+    )
     has_spare_tire = models.PositiveSmallIntegerField(
         choices=((1,'Yes'),
                 (2,'No')),
@@ -121,6 +127,11 @@ class Trailer(models.Model):
     electrical_instalation = models.TextField(blank=True)
     price = models.IntegerField()
     tax_price = models.IntegerField()
+    tax = models.PositiveSmallIntegerField(
+        choices=((1,6.25),
+                (2,8.5)),
+        default=1,
+    )
     owner = models.ForeignKey(Owners,
                             on_delete=models.CASCADE,
                             related_name='trailer_owner')
@@ -133,6 +144,8 @@ class Trailer(models.Model):
                 (2,'Permanent')),
         default=1,
     )
+    plate_file = models.FileField(upload_to='towit/plates', blank=True, 
+                                  storage=gd_storage) 
     title = models.ForeignKey(Stage,
                             on_delete=models.CASCADE,
                             related_name='title_stage')
@@ -268,6 +281,9 @@ class ContractDocument(models.Model):
                             on_delete=models.CASCADE,
                             related_name='contract_document')    
     document = models.FileField(upload_to='towit/contracts', storage=gd_storage)
+    
+    def get_absolute_url(self):
+        return reverse('contract_detail_signed', kwargs={'id': self.lease.id})
 
 class HandWriting(models.Model):
     lease = models.ForeignKey(Lease,
@@ -290,7 +306,7 @@ class Tracker(models.Model):
     emei = models.IntegerField()
     device_password = models.CharField(max_length=15, default="123456")
     phone_number = models.CharField(max_length=15)
-    phone_password = models.CharField(max_length=15)
+    phone_password = models.CharField(max_length=15, blank=True)
     line_credit = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)

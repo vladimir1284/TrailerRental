@@ -34,6 +34,8 @@ urlpatterns = [
     # Contracts
     path('new_contract/<int:lessee_id>/',  LeaseCreateView.as_view(), name='new_contract'),
     path('contract/<int:id>',  contract_detail, name='contract_detail'),
+    path('contract_signed/<int:id>',  contract_detail_signed, name='contract_detail_signed'),
+    path('upload_contract_document/<int:id>',  ContractDocumentCreateView.as_view(), name='upload_contract_document'),
     path('contracts/',  contracts, name='contracts'),
     path('update_contract/<slug:pk>',  ContractUpdateView.as_view(), name='update_contract'),
     path('delete_contract/<slug:id>',  delete_contract, name='delete_contract'),

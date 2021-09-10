@@ -56,13 +56,13 @@
             }
         }
        function approveContract() {
-            let confirmAction = confirm("Are you sure to approve the contract?\n A pdf copy will be send to the lessee.");
+            let confirmAction = confirm("Are you sure to approve the contract? A pdf copy will be send to the lessee.");
             if (confirmAction) {
                  window.location = "/towit/change_contract_stage/{{ contract.id }}/2";
             }
         }
        function finishContract() {
-            let confirmAction = confirm(`Are you sure to finish the contract?\n 
+            let confirmAction = confirm(`Are you sure to finish the contract? 
                                         A signed copy will be send to the lessee.
                                         An event will be added to the calendar.`);
             if (confirmAction) {
@@ -70,7 +70,7 @@
             }
         }
        function archiveContract() {
-            let confirmAction = confirm(`Are you sure to finish the contract?\n 
+            let confirmAction = confirm(`Are you sure to finish the contract? 
                                         A signed copy will be send to the lessee.
                                         An event will be added to the calendar.`);
             if (confirmAction) {
@@ -98,6 +98,11 @@
 	            <button onclick="finishContract()" class="btn btn-primary left-space">
 	                Finish
 	            </button>
+                <a href="/towit/upload_contract_document/{{ contract.id }}">
+	                <button class="btn btn-primary left-space">
+	                    Upload
+	                </button>
+	            </a>
 	        {% else %}
                 <button onclick="archiveContract()" class="btn btn-primary left-space">
                     Archive
