@@ -189,7 +189,7 @@
             <div class="card-header">
 		        Title: 
 		        {% if trailer.title_file != "" %}
-{#		            <a href="{{ trailer.title_file.url }}"><b> {{ trailer.title }} </b></a>#}
+		            <a href="{{ trailer.title_file.url }}"><b> {{ trailer.title }} </b></a>
 		        {% else %}
 		            <b> {{ trailer.title }} </b>
 		        {% endif %}
@@ -202,7 +202,7 @@
             <div class="card-header">
 	            Sticker: 
 	            {% if trailer.sticker_file != "" %}
-{#                  <a href="{{ trailer.sticker_file.url }}"><b> {{ trailer.sticker }} </b></a>#}
+                  <a href="{{ trailer.sticker_file.url }}"><b> {{ trailer.sticker }} </b></a>
 	            {% else %}
 	                <b> {{ trailer.sticker }} </b>
 	            {% endif %}             
@@ -259,7 +259,7 @@
 	    <div class="col-6 col-md-4 text-center">
 			<input value={{ img.id }} id="trigger-{{ img.id }}" type="checkbox" style="display: none;" class="img-cb">
 			<label for="trigger-{{ img.id }}" class="img-border">
-			    <img class="checker" src="{{ img.image.urls }}" alt="Trailer picture">
+			    <img class="checker" src="{{ img.image.url }}" alt="Trailer picture">
 			</label>
 	    </div>
     {% endfor %}
