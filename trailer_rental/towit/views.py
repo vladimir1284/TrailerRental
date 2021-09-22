@@ -101,25 +101,12 @@ def trailers(request):
     trailers = Trailer.objects.all()
     return render(request, 'towit/trailer/trailers.html', {'trailers': trailers})
  
-@login_required
 def share_images(request, ids):
     pks = list(map(int, ids.split(',')[:-1]))
     images = TrailerPicture.objects.filter(pk__in=pks) 
-    trailers = Trailer.objects.all()
-    html_string = render_to_string('towit/trailer/pictures_pdf.html', {'images': images})
-    html = HTML(string=html_string, base_url=request.build_absolute_uri())
-    result = html.write_pdf()
+    return render(request, 'towit/trailer/trailer_images.html', {'images': images,
+                                                                  'trailer': images[0].trailer})
 
-    # Creating http response
-    response = HttpResponse(content_type='application/pdf;')
-    response['Content-Disposition'] = 'inline; filename=trailer_pictures.pdf'
-    response['Content-Transfer-Encoding'] = 'binary'
-    with tempfile.NamedTemporaryFile(delete=True) as output:
-        output.write(result)
-        output.flush()
-        output = open(output.name, 'rb')
-        response.write(output.read())
-    return response
 
 @login_required
 def contacts(request):
