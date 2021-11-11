@@ -300,6 +300,7 @@ class HandWriting(models.Model):
 
 class Tracker(models.Model):
     trailer = models.ForeignKey(Trailer,
+                            null=True,
                             on_delete=models.CASCADE,
                             related_name='tracker_trailer')
     last_update = models.DateTimeField(blank=True, null=True)
@@ -313,6 +314,21 @@ class Tracker(models.Model):
     
     def get_absolute_url(self):
         return reverse('trailer_detail', kwargs={'id': self.trailer.id})
+
+class TrackerData(models.Model):
+    tracker = models.ForeignKey(Tracker,
+                            on_delete=models.CASCADE,
+                            related_name='data_tracker')
+    timestamp = models.DateTimeField(default=datetime.now())
+    longitude = models.FloatField()
+    latitude = models.FloatField()
+    line_credit = models.FloatField(blank=True, null=True)
+    battery = models.IntegerField()
+    powered = models.BooleanField()
+    errors = models.IntegerField()
+
+
+    
     
     
     

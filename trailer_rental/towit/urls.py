@@ -45,4 +45,6 @@ urlpatterns = [
     path('new_tracker/<int:trailer_id>',  TrackerCreateView.as_view(), name='new_tracker'),
     path('update_tracker/<slug:pk>',  TrackerUpdateView.as_view(), name='update_tracker'),
     path('delete_tracker/<int:id>',  delete_tracker, name='delete_tracker'),
+    path('tracker_id/<passwd>/<int:emei>',  tracker_id, name='tracker_id'),
+    path('tracker_data/<passwd>/<int:tracker_id>/<int:lat>/<int:lon>/<int:battery>/<int:power>/<int:errors>/<int:credit>',  tracker_data, name='tracker_data'),
 ]

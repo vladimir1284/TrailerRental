@@ -18,6 +18,8 @@ import base64
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 
+SKEY = "c0ntr453n1a"
+
 @login_required
 def contact_detail(request, id):
     contact = Contact.objects.get(id=id)
@@ -299,6 +301,41 @@ def trailer_json(request, id):
                          'ramps_material': trailer.get_ramps_material_display(), 
                          'ramps_length': trailer.get_ramps_length_display(), 
                          'electrical_instalation': trailer.electrical_instalation})
+
+# Incoming data from a tracker
+def tracker_data(request, passwd, tracker_id, lat, lon, battery, power, errors, credit):
+    if (SKEY != passwd):
+        return JsonResponse({'status': 'wrong passwd'})
+    status = "ok"
+    try:
+        tracker = Tracker.objects.get(id=tracker_id) 
+    except:
+        return JsonResponse({'status': 'wrong id'})
+    # Store data
+    data = TrackerData(tracker=tracker,
+                        longitude=lon/100000,
+                        latitude=lat/100000,
+                        battery=battery,
+                        powered=power,
+                        errors=errors)
+    if (credit > 0):
+        data.line_credit = credit
+    data.save()
+
+    return JsonResponse({'status': status})
+
+# For those trackers that are new or lost their ID
+def tracker_id(request, passwd, emei):
+    if (SKEY != passwd):
+        return JsonResponse({'status': 'wrong passwd'})
+    try:
+        tracker = Tracker.objects.get(emei=emei)
+    except:
+        # Create a new tracker
+        tracker = Tracker(emei=emei)
+        tracker.save()
+    print(tracker)
+    return JsonResponse({'id': tracker.id})
 
 @login_required
 def trailer_detail(request, id):
