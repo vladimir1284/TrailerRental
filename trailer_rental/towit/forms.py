@@ -359,8 +359,9 @@ class LesseeForm(ModelForm):
 class TrackerForm(ModelForm):
     class Meta:
         model = Tracker    
-        fields = ('trailer', 'emei',  'device_password',  
-                  'phone_number', 'phone_password')         
+        fields = ('trailer', 'emei',  'device_password',  'phone_number', 
+                  'phone_password', 'Tcheck' , 'MAX_ERRORS', 'Tint', 'TintB', 
+                  'TGPS', 'TGPSB', 'SMART', 'Tsend', 'TsendB')         
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)                
@@ -394,10 +395,65 @@ class TrackerForm(ModelForm):
                     css_class = 'row'
                 ),
             'trailer',
+            ),
+            Fieldset(
+                'General',
+                Div(
+                    Div(
+                        'MAX_ERRORS',
+                        css_class = 'col-4'
+                    ),
+                    Div(
+                        'SMART',
+                        css_class = 'col-4'
+                    ),
+                    Div(
+                        AppendedText('Tcheck',"min"),
+                        css_class = 'col-4'
+                    ),                    
+                    css_class = 'row'
+                )
+            ),
+            Fieldset(
+                'Powered times',
+                Div(
+                    Div(
+                        AppendedText('Tint',"min"),
+                        css_class = 'col-4'
+                    ),
+                    Div(
+                        AppendedText('Tsend',"min"),
+                        css_class = 'col-4'
+                    ),
+                    Div(
+                        AppendedText('TGPS',"min"),
+                        css_class = 'col-4'
+                    ),
+                    css_class = 'row'
+                )
+            ),
+            Fieldset(
+                'Battery times',
+                Div(
+                    Div(
+                        AppendedText('TintB',"min"),
+                        css_class = 'col-4'
+                    ),
+                    Div(
+                        AppendedText('TsendB',"min"),
+                        css_class = 'col-4'
+                    ),
+                    Div(
+                        AppendedText('TGPSB',"min"),
+                        css_class = 'col-4'
+                    ),
+                    css_class = 'row'
+                )
+            ),
             ButtonHolder(
                 Submit('submit', 'Register tracker', css_class='btn btn-success')
                 )
-            )
+            
         )
        
      

@@ -306,11 +306,20 @@ class Tracker(models.Model):
     last_update = models.DateTimeField(blank=True, null=True)
     emei = models.IntegerField()
     device_password = models.CharField(max_length=15, default="123456")
-    phone_number = models.CharField(max_length=15)
+    phone_number = models.CharField(max_length=15, blank=True)
     phone_password = models.CharField(max_length=15, blank=True)
     line_credit = models.FloatField(blank=True, null=True)
-    longitude = models.FloatField(blank=True, null=True)
-    latitude = models.FloatField(blank=True, null=True)
+    # Configuration parameters
+    pendingConfigs = models.BinaryField(default=b'')
+    Tcheck = models.IntegerField(default=15)
+    MAX_ERRORS = models.IntegerField(default=3)
+    Tint = models.IntegerField(default=60)
+    TintB = models.IntegerField(default=360)
+    TGPS = models.IntegerField(default=10)
+    TGPSB = models.IntegerField(default=10)
+    SMART = models.BooleanField(default=False)
+    Tsend = models.IntegerField(default=10)
+    TsendB = models.IntegerField(default=10)
     
     def get_absolute_url(self):
         return reverse('trailer_detail', kwargs={'id': self.trailer.id})
