@@ -2,8 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView
 from ..forms import TrackerForm
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect
-from django.http import JsonResponse
+from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from towit.models import Tracker, TrackerData
 
@@ -137,26 +136,27 @@ def tracker_parameters(request, passwd, tracker_id):
     return response   
     
 # Incoming data from a tracker
-def tracker_data(request, passwd, tracker_id, lat, lon, battery, power, errors, credit):
+def tracker_data(request, passwd, tracker_id, lat, lon, battery, power, errors):
     if (SKEY != passwd):
+        print("Wrong password: %s" % passwd)
         payload = bytes([error_codes["Wrong password"]])
         response = HttpResponse(payload)
         return response
     try:
         tracker = Tracker.objects.get(id=tracker_id) 
     except:
+        print("Wrong ID: %i" % tracker_id)
         payload = bytes([error_codes["Wrong ID"]])
         response = HttpResponse(payload)
         return response
     # Store data
     data = TrackerData(tracker=tracker,
-                        longitude=lon/100000,
-                        latitude=lat/100000,
+                        longitude=float(lon),
+                        latitude=float(lat),
                         battery=battery,
                         powered=power,
                         errors=errors)
-    if (credit > 0):
-        data.line_credit = credit
+
     data.save()
     
     if (tracker.pendingConfigs != b''): # Send and clean pending data
@@ -174,16 +174,16 @@ def tracker_data(request, passwd, tracker_id, lat, lon, battery, power, errors, 
         return response
 
 # For those trackers that are new or lost their ID
-def tracker_id(request, passwd, emei):
+def tracker_id(request, passwd, imei):
     if (SKEY != passwd):
         payload = bytes([error_codes["Wrong password"]])
         response = HttpResponse(payload)
         return response
     try:
-        tracker = Tracker.objects.get(emei=emei)
+        tracker = Tracker.objects.get(imei=imei)
     except:
         # Create a new tracker
-        tracker = Tracker(emei=emei)
+        tracker = Tracker(imei=imei)
         tracker.save()
     print(tracker)
     nData = 1
@@ -194,3 +194,22 @@ def tracker_id(request, passwd, emei):
 
     response = HttpResponse(payload)
     return response
+
+@login_required
+def tracker_detail(request, id):
+    tracker = Tracker.objects.get(id=id)
+    
+    try:
+        data = TrackerData.objects.filter(tracker=tracker).order_by("-timestamp")[0]
+    except:
+        return render(request, 'towit/tracker/tracker.html', {'tracker': tracker})
+    
+    return render(request, 'towit/tracker/tracker_data.html', {'tracker': tracker,
+                                                               'data': data})
+@login_required
+def trackers(request):
+    trackers = Tracker.objects.all()
+    return render(request, 'towit/tracker/trackers.html', {'trackers': trackers})
+
+
+

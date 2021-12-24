@@ -359,7 +359,7 @@ class LesseeForm(ModelForm):
 class TrackerForm(ModelForm):
     class Meta:
         model = Tracker    
-        fields = ('trailer', 'emei',  'device_password',  'phone_number', 
+        fields = ('owner', 'imei',  'device_password',  'phone_number', 
                   'phone_password', 'Tcheck' , 'MAX_ERRORS', 'Tint', 'TintB', 
                   'TGPS', 'TGPSB', 'SMART', 'Tsend', 'TsendB')         
     
@@ -371,7 +371,7 @@ class TrackerForm(ModelForm):
                 'Tracker device',
                 Div(
                     Div(
-                        'emei',
+                        'imei',
                         css_class = 'col-6'
                     ),
                     Div(
@@ -394,7 +394,7 @@ class TrackerForm(ModelForm):
                     ),
                     css_class = 'row'
                 ),
-            'trailer',
+            'owner',
             ),
             Fieldset(
                 'General',

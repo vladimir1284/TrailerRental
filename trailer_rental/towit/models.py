@@ -299,12 +299,14 @@ class HandWriting(models.Model):
         return reverse('contract_detail', kwargs={'id': self.lease.id}) + '#contract_detail_sign'
 
 class Tracker(models.Model):
-    trailer = models.ForeignKey(Trailer,
+    owner = models.ForeignKey(User,
+                            default=None,  
                             null=True,
-                            on_delete=models.CASCADE,
-                            related_name='tracker_trailer')
+                            blank=True,
+                            on_delete=models.SET_DEFAULT,
+                            related_name='tracker_owner')
     last_update = models.DateTimeField(blank=True, null=True)
-    emei = models.IntegerField()
+    imei = models.IntegerField()
     device_password = models.CharField(max_length=15, default="123456")
     phone_number = models.CharField(max_length=15, blank=True)
     phone_password = models.CharField(max_length=15, blank=True)
@@ -322,7 +324,7 @@ class Tracker(models.Model):
     TsendB = models.IntegerField(default=10)
     
     def get_absolute_url(self):
-        return reverse('trailer_detail', kwargs={'id': self.trailer.id})
+        return reverse('tracker_detail', kwargs={'id': self.id})
 
 class TrackerData(models.Model):
     tracker = models.ForeignKey(Tracker,
@@ -331,7 +333,6 @@ class TrackerData(models.Model):
     timestamp = models.DateTimeField(default=datetime.now())
     longitude = models.FloatField()
     latitude = models.FloatField()
-    line_credit = models.FloatField(blank=True, null=True)
     battery = models.IntegerField()
     powered = models.BooleanField()
     errors = models.IntegerField()
