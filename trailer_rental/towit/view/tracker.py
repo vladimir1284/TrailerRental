@@ -151,8 +151,8 @@ def tracker_data(request, passwd, tracker_id, lat, lon, battery, power, errors):
         return response
     # Store data
     data = TrackerData(tracker=tracker,
-                        longitude=float(lon),
-                        latitude=float(lat),
+                        longitude=float(lon) / 100000,
+                        latitude=float(lat) / 100000,
                         battery=battery,
                         powered=power,
                         errors=errors)
