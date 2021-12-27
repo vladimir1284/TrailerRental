@@ -330,7 +330,7 @@ class TrackerData(models.Model):
     tracker = models.ForeignKey(Tracker,
                             on_delete=models.CASCADE,
                             related_name='data_tracker')
-    timestamp = models.DateTimeField(default=datetime.now())
+    timestamp = models.DateTimeField(default=datetime.now)
     longitude = models.FloatField()
     latitude = models.FloatField()
     battery = models.IntegerField()
