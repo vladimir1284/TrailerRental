@@ -330,12 +330,17 @@ class TrackerData(models.Model):
     tracker = models.ForeignKey(Tracker,
                             on_delete=models.CASCADE,
                             related_name='data_tracker')
+    sats = models.IntegerField(blank=True, null=True)
     timestamp = models.DateTimeField(default=datetime.now)
-    longitude = models.FloatField()
-    latitude = models.FloatField()
-    battery = models.IntegerField()
-    powered = models.BooleanField()
-    errors = models.IntegerField()
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    speed = models.FloatField(blank=True, null=True)
+    heading = models.IntegerField(blank=True, null=True)
+    battery = models.FloatField(blank=True, null=True)
+    power = models.BooleanField(blank=True, null=True)    
+    mode = models.IntegerField(blank=True, null=True)
+    event_id = models.IntegerField(blank=True, null=True)
+    sequence = models.IntegerField(blank=True, null=True)
 
 
     

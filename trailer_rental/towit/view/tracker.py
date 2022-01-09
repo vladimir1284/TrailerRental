@@ -5,6 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from towit.models import Tracker, TrackerData
+from weasyprint.css.computed_values import content
+from datetime import datetime
 
 """
 Response binary datagram
@@ -35,8 +37,13 @@ addrs = {'Tcheck': 1,    # the EEPROM address used to store Tcheck
         }
 
 error_codes ={"Wrong password": 200,
-               "Wrong ID": 201,
-               }
+               "Wrong IMEI": 201,
+               "Wrong FORMAT": 202,
+            }
+
+power_modes ={1: False,
+              6: True,
+            }
 
 SKEY = "c0ntr453n1a"
 
@@ -136,26 +143,48 @@ def tracker_parameters(request, passwd, tracker_id):
     return response   
     
 # Incoming data from a tracker
-def tracker_data(request, passwd, tracker_id, lat, lon, battery, power, errors):
-    if (SKEY != passwd):
-        print("Wrong password: %s" % passwd)
-        payload = bytes([error_codes["Wrong password"]])
+def tracker_data(request, msg):    
+    try:
+        # MT;6;864713037301317;R0;5+220109033521+21.38810+-77.91893+0.33+0+0+3765+9
+        content = msg.split(';')
+        mode = int(content[1])
+        imei = int(content[2])
+        data = content[4].split('+')
+        sats = int(data[0])
+        timestamp = datetime.strptime(data[1],"%y%m%d%H%M%S")
+        lat = float(data[2])
+        lon = float(data[3])
+        speed = float(data[4])
+        heading = int(data[5])
+        event_id = int(data[6])
+        battery = float(data[7])/1000
+        sequence = int(data[8])        
+    except:
+        print("Wrong FORMAT: %s" % msg)
+        payload = bytes([error_codes["Wrong FORMAT"]])
         response = HttpResponse(payload)
         return response
+    
     try:
-        tracker = Tracker.objects.get(id=tracker_id) 
+        tracker = Tracker.objects.get(imei=imei) 
     except:
-        print("Wrong ID: %i" % tracker_id)
-        payload = bytes([error_codes["Wrong ID"]])
+        print("Wrong IMEI: %i" % imei)
+        payload = bytes([error_codes["Wrong IMEI"]])
         response = HttpResponse(payload)
         return response
     # Store data
-    data = TrackerData(tracker=tracker,
-                        longitude=float(lon) / 100000,
-                        latitude=float(lat) / 100000,
-                        battery=battery,
-                        powered=power,
-                        errors=errors)
+    data = TrackerData( tracker=tracker,
+                        sats = sats,
+                        timestamp = timestamp,
+                        latitude = lat,
+                        longitude = lon,
+                        speed = speed,
+                        heading = heading,
+                        event_id = event_id,
+                        battery = battery,
+                        sequence = sequence,
+                        power = power_modes[mode],
+                        mode = mode)
 
     data.save()
     
@@ -200,12 +229,13 @@ def tracker_detail(request, id):
     tracker = Tracker.objects.get(id=id)
     
     try:
-        data = TrackerData.objects.filter(tracker=tracker).order_by("-timestamp")[0]
+        data = TrackerData.objects.filter(tracker=tracker).order_by("-timestamp")[:10]
     except:
         return render(request, 'towit/tracker/tracker.html', {'tracker': tracker})
     
     return render(request, 'towit/tracker/tracker_data.html', {'tracker': tracker,
-                                                               'data': data})
+                                                               'data': data[0],
+                                                               'history': data})
 @login_required
 def trackers(request):
     trackers = Tracker.objects.all()
