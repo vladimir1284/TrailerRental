@@ -19,7 +19,7 @@ class TowitConfig(AppConfig):
 
 
 
-#broker = 'localhost'
+# broker = 'localhost'
 broker = 'test.mosquitto.org'
 port = 1883
 #topic = "864713037301317"
@@ -93,6 +93,62 @@ def decode_payload(msg):
         return
     
     
+"""
+  Parse data from tracker
+  msg structure:    
+    seq,mode,event,lat,lon,speed,heading,sats,vbat
+"""
+def parse_msg(msg):
+    from towit.models import Tracker, TrackerData
+    try:
+        data = msg.payload.decode().split(',')
+        seq     = int(data[0])
+        mode    = int(data[1])
+        event   = int(data[2])
+        lat     = float(data[3])
+        lon     = float(data[4])
+        speed   = int(data[5])
+        heading = int(data[6])
+        sats    = int(data[7])
+        vbat    = int(data[8])/1000. # Volts
+        print("seq #: %i" % seq)
+        print("mode: %i" % mode)
+        print("event id: %i" % event)
+        print("number of sats: %i" % sats)
+        print("vbat: %.3fV" % vbat)
+        print("heading: %ideg" % heading)
+        print("lat: %.5f" % lat)
+        print("lon: %.5f" % lon)
+        print("speed: %.2fkm/h" % speed)
+    except:
+        print("Malformed msg from %s!" % msg.topic)
+        return
+    try:
+        tracker = Tracker.objects.get(imei=int(msg.topic))
+        # No repeated messages
+        last_seq = -1
+        try:
+            last_seq = TrackerData.objects.filter(tracker=tracker).order_by("-timestamp")[0].sequence
+        except:
+            print("No previous data")
+        if (seq != last_seq): # Only save if record does not exist
+            td = TrackerData( tracker=tracker,
+                            sats = sats,
+                            timestamp = datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
+                            latitude = lat,
+                            longitude = lon,
+                            speed = speed,
+                            heading = heading,
+                            event_id = event,
+                            battery = vbat,
+                            sequence = seq,
+                            power = power_modes[mode],
+                            mode = mode)
+            td.save()
+    except:
+        print("Unknown IMEI %s!" % msg.topic)
+        return    
+    
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
@@ -109,8 +165,9 @@ def connect_mqtt() -> mqtt_client:
 
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
-        #print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
-        decode_payload(msg)
+        print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        #decode_payload(msg)
+        parse_msg(msg);
     # Subscribe to all trackers
     from towit.models import Tracker
     trackers = Tracker.objects.all()
