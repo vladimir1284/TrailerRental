@@ -49,6 +49,6 @@ urlpatterns = [
     path('tracker_detail/<int:id>',  tracker_detail, name='tracker_detail'),
     path('trackers/',  trackers, name='trackers'),
     path('tracker_id/<passwd>/<int:imei>',  tracker_id, name='tracker_id'),
-    path('tracker_data/<msg>', tracker_data, name='tracker_data'),
+    path('tracker_data', tracker_data, name='tracker_data'),
     path('tracker_parameters/<passwd>/<int:tracker_id>',  tracker_parameters, name='tracker_parameters'),
 ]

@@ -12,10 +12,11 @@ power_modes ={1: False,
 class TowitConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'towit'
-    def ready(self):        
-        client = connect_mqtt()
-        subscribe(client)
-        client.loop_start()
+    def ready(self):   
+        pass     
+        # client = connect_mqtt()
+        # subscribe(client)
+        # client.loop_start()
 
 
 
