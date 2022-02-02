@@ -7,6 +7,9 @@ from django.http import HttpResponse
 from towit.models import Tracker, TrackerData
 from weasyprint.css.computed_values import content
 from datetime import datetime
+from django.views.decorators.csrf import csrf_exempt
+import pytz
+from django.conf import settings
 
 """
 Response binary datagram
@@ -143,64 +146,126 @@ def tracker_parameters(request, passwd, tracker_id):
     return response   
     
 # Incoming data from a tracker
-def tracker_data(request, msg):    
-    try:
-        # MT;6;864713037301317;R0;5+220109033521+21.38810+-77.91893+0.33+0+0+3765+9
-        content = msg.split(';')
-        mode = int(content[1])
-        imei = int(content[2])
-        data = content[4].split('+')
-        sats = int(data[0])
-        timestamp = datetime.strptime(data[1],"%y%m%d%H%M%S")
-        lat = float(data[2])
-        lon = float(data[3])
-        speed = float(data[4])
-        heading = int(data[5])
-        event_id = int(data[6])
-        battery = float(data[7])/1000
-        sequence = int(data[8])        
-    except:
-        print("Wrong FORMAT: %s" % msg)
-        payload = bytes([error_codes["Wrong FORMAT"]])
-        response = HttpResponse(payload)
-        return response
-    
-    try:
-        tracker = Tracker.objects.get(imei=imei) 
-    except:
-        print("Wrong IMEI: %i" % imei)
-        payload = bytes([error_codes["Wrong IMEI"]])
-        response = HttpResponse(payload)
-        return response
-    # Store data
-    data = TrackerData( tracker=tracker,
-                        sats = sats,
-                        timestamp = timestamp,
-                        latitude = lat,
-                        longitude = lon,
-                        speed = speed,
-                        heading = heading,
-                        event_id = event_id,
-                        battery = battery,
-                        sequence = sequence,
-                        power = power_modes[mode],
-                        mode = mode)
-
-    data.save()
-    
-    if (tracker.pendingConfigs != b''): # Send and clean pending data
-        nData = bytes([int(len(tracker.pendingConfigs)/3)])
-        payload = nData + tracker.pendingConfigs
-        response = HttpResponse(payload)
-        tracker.pendingConfigs = b''
-        tracker.save()
-        print("here")
-        return response        
-    else:
-        payload = bytes([0])
-        response = HttpResponse(payload)
-        print("there")
-        return response
+@csrf_exempt
+def tracker_data(request): 
+    if request.method == 'POST':
+        """
+          Parse data from tracker
+          msg structure:    
+            imei,seq,mode,event,lat,lon,speed,heading,sats,vbat
+        """ 
+        try:
+            msg = request.body.decode()
+            print(msg)
+        except:
+            return HttpResponse("Wrong codification!")
+        try:
+            data = msg.split(',')
+            imei     = int(data[0])            
+            seq     = int(data[1])
+            mode    = int(data[2])
+            event   = int(data[3])
+            lat     = float(data[4])
+            lon     = float(data[5])
+            speed   = int(data[6])
+            heading = int(data[7])
+            sats    = int(data[8])
+            vbat    = int(data[9])/1000. # Volts
+            print("IMEI #: %i" % imei)
+            print("seq #: %i" % seq)
+            print("mode: %i" % mode)
+            print("event id: %i" % event)
+            print("number of sats: %i" % sats)
+            print("vbat: %.3fV" % vbat)
+            print("heading: %ideg" % heading)
+            print("lat: %.5f" % lat)
+            print("lon: %.5f" % lon)
+            print("speed: %.2fkm/h" % speed)
+        except:
+            return HttpResponse("Malformed message!")
+        try:
+            tracker = Tracker.objects.get(imei=imei)
+            # No repeated messages
+            last_seq = -1
+            try:
+                last_seq = TrackerData.objects.filter(tracker=tracker).order_by("-timestamp")[0].sequence
+            except:
+                print("No previous data")
+            if (seq != last_seq): # Only save if record does not exist
+                td = TrackerData( tracker=tracker,
+                                sats = sats,
+                                timestamp = datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
+                                latitude = lat,
+                                longitude = lon,
+                                speed = speed,
+                                heading = heading,
+                                event_id = event,
+                                battery = vbat,
+                                sequence = seq,
+                                power = power_modes[mode],
+                                mode = mode)
+                td.save()
+        except:
+            return HttpResponse("Unknown IMEI %s!" % imei)
+            
+        return HttpResponse("ok")
+    # try:
+    #     # MT;6;864713037301317;R0;5+220109033521+21.38810+-77.91893+0.33+0+0+3765+9
+    #     content = msg.split(';')
+    #     mode = int(content[1])
+    #     imei = int(content[2])
+    #     data = content[4].split('+')
+    #     sats = int(data[0])
+    #     timestamp = datetime.strptime(data[1],"%y%m%d%H%M%S")
+    #     lat = float(data[2])
+    #     lon = float(data[3])
+    #     speed = float(data[4])
+    #     heading = int(data[5])
+    #     event_id = int(data[6])
+    #     battery = float(data[7])/1000
+    #     sequence = int(data[8])        
+    # except:
+    #     print("Wrong FORMAT: %s" % msg)
+    #     payload = bytes([error_codes["Wrong FORMAT"]])
+    #     response = HttpResponse(payload)
+    #     return response
+    #
+    # try:
+    #     tracker = Tracker.objects.get(imei=imei) 
+    # except:
+    #     print("Wrong IMEI: %i" % imei)
+    #     payload = bytes([error_codes["Wrong IMEI"]])
+    #     response = HttpResponse(payload)
+    #     return response
+    # # Store data
+    # data = TrackerData( tracker=tracker,
+    #                     sats = sats,
+    #                     timestamp = timestamp,
+    #                     latitude = lat,
+    #                     longitude = lon,
+    #                     speed = speed,
+    #                     heading = heading,
+    #                     event_id = event_id,
+    #                     battery = battery,
+    #                     sequence = sequence,
+    #                     power = power_modes[mode],
+    #                     mode = mode)
+    #
+    # data.save()
+    #
+    # if (tracker.pendingConfigs != b''): # Send and clean pending data
+    #     nData = bytes([int(len(tracker.pendingConfigs)/3)])
+    #     payload = nData + tracker.pendingConfigs
+    #     response = HttpResponse(payload)
+    #     tracker.pendingConfigs = b''
+    #     tracker.save()
+    #     print("here")
+    #     return response        
+    # else:
+    #     payload = bytes([0])
+    #     response = HttpResponse(payload)
+    #     print("there")
+    #     return response
 
 # For those trackers that are new or lost their ID
 def tracker_id(request, passwd, imei):
