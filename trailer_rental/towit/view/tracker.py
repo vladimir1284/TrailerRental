@@ -185,26 +185,26 @@ def tracker_data(request):
             return HttpResponse("Malformed message!")
         try:
             tracker = Tracker.objects.get(imei=imei)
-            # No repeated messages
-            last_seq = -1
-            try:
-                last_seq = TrackerData.objects.filter(tracker=tracker).order_by("-timestamp")[0].sequence
-            except:
-                print("No previous data")
-            if (seq != last_seq): # Only save if record does not exist
-                td = TrackerData( tracker=tracker,
-                                sats = sats,
-                                timestamp = datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
-                                latitude = lat,
-                                longitude = lon,
-                                speed = speed,
-                                heading = heading,
-                                event_id = event,
-                                battery = vbat,
-                                sequence = seq,
-                                power = power_modes[mode],
-                                mode = mode)
-                td.save()
+            # # No repeated messages
+            # last_seq = -1
+            # try:
+            #     last_seq = TrackerData.objects.filter(tracker=tracker).order_by("-timestamp")[0].sequence
+            # except:
+            #     print("No previous data")
+            # if (seq != last_seq): # Only save if record does not exist
+            td = TrackerData( tracker=tracker,
+                            sats = sats,
+                            timestamp = datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
+                            latitude = lat,
+                            longitude = lon,
+                            speed = speed,
+                            heading = heading,
+                            event_id = event,
+                            battery = vbat,
+                            sequence = seq,
+                            power = power_modes[mode],
+                            mode = mode)
+            td.save()
         except:
             return HttpResponse("Unknown IMEI %s!" % imei)
             
