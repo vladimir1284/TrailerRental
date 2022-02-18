@@ -10,6 +10,13 @@ from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 import pytz
 from django.conf import settings
+import requests
+import json
+from requests.auth import HTTPBasicAuth
+from ..config import pwd
+
+# Authentication
+usr = 'apikey'
 
 """
 Response binary datagram
@@ -56,48 +63,51 @@ class TrackerUpdateView(LoginRequiredMixin,UpdateView):
     template_name = 'towit/trailer/new_tracker.html' 
     
     def form_valid(self, form):
+        resp = {'status':'ok'}
         if(Tracker.objects.get(id=self.kwargs['pk']).Tint !=  form.instance.Tint):
-            storeForUpdate('Tint', form.instance.Tint, form.instance)
+            storeForUpdate('Tint', form.instance.Tint, resp)
         if(Tracker.objects.get(id=self.kwargs['pk']).TintB !=  form.instance.TintB):
-            storeForUpdate('TintB', form.instance.TintB, form.instance)
+            storeForUpdate('TintB', form.instance.TintB, resp)
         if(Tracker.objects.get(id=self.kwargs['pk']).Tcheck !=  form.instance.Tcheck):
-            storeForUpdate('Tcheck', form.instance.Tcheck, form.instance)
+            storeForUpdate('Tcheck', form.instance.Tcheck, resp)
         if(Tracker.objects.get(id=self.kwargs['pk']).MAX_ERRORS !=  form.instance.MAX_ERRORS):
-            storeForUpdate('MAX_ERRORS', form.instance.MAX_ERRORS, form.instance)
+            storeForUpdate('MAX_ERRORS', form.instance.MAX_ERRORS, resp)
         if(Tracker.objects.get(id=self.kwargs['pk']).TGPS !=  form.instance.TGPS):
-            storeForUpdate('TGPS', form.instance.TGPS, form.instance)
+            storeForUpdate('TGPS', form.instance.TGPS, resp)
         if(Tracker.objects.get(id=self.kwargs['pk']).TGPSB !=  form.instance.TGPSB):
-            storeForUpdate('TGPSB', form.instance.TGPSB, form.instance)
+            storeForUpdate('TGPSB', form.instance.TGPSB, resp)
         if(Tracker.objects.get(id=self.kwargs['pk']).SMART !=  form.instance.SMART):
-            storeForUpdate('SMART', form.instance.SMART, form.instance)
+            storeForUpdate('SMART', form.instance.SMART, resp)
         if(Tracker.objects.get(id=self.kwargs['pk']).Tsend !=  form.instance.Tsend):
-            storeForUpdate('Tsend', form.instance.Tsend, form.instance)
+            storeForUpdate('Tsend', form.instance.Tsend, resp)
         if(Tracker.objects.get(id=self.kwargs['pk']).TsendB !=  form.instance.TsendB):
-            storeForUpdate('TsendB', form.instance.TsendB, form.instance)
+            storeForUpdate('TsendB', form.instance.TsendB, resp)
             
+        data={
+            "deviceid": form.instance.device_id,
+            "fromnumber":"+522221111122",
+            "body": json.dumps(resp)
+            }
+        try:
+            # Send SMS
+            response = requests.post(
+            'https://dashboard.hologram.io/api/1/sms/incoming',
+            data = data,
+            auth = HTTPBasicAuth(usr, pwd)
+            )
+            # Logs
+            print(response.json())    
+        except:
+            print(data)
             
         return super(TrackerUpdateView, self).form_valid(form)
     
-def storeForUpdate(key, value, instance):
-    data_low = value & 0xff
-    data_high = (value >> 8) & 0xff
-    if (len(instance.pendingConfigs) < 3):
-        instance.pendingConfigs = bytes([addrs[key], data_low, data_high])
-    else:
-        data = [val for val in instance.pendingConfigs]
-        exist = False
-        for i in range(0,len(data), 3):
-            if (addrs[key] == data[i]):
-                # Already modified
-                data[i+1] = data_low
-                data[i+2] = data_high
-                exist = True
-                break
-        if (not(exist)): # Add a new pending configuration
-            data.append(addrs[key])
-            data.append(data_low)
-            data.append(data_high)
-        instance.pendingConfigs = bytes(data)
+def storeForUpdate(key, value, resp):
+    if 'configs' not in resp:
+        resp['configs'] = {}
+        
+    resp['configs'][key] = value
+    
     
 class TrackerCreateView(LoginRequiredMixin,CreateView):
     model = Tracker
@@ -185,13 +195,6 @@ def tracker_data(request):
             return HttpResponse("Malformed message!")
         try:
             tracker = Tracker.objects.get(imei=imei)
-            # # No repeated messages
-            # last_seq = -1
-            # try:
-            #     last_seq = TrackerData.objects.filter(tracker=tracker).order_by("-timestamp")[0].sequence
-            # except:
-            #     print("No previous data")
-            # if (seq != last_seq): # Only save if record does not exist
             td = TrackerData( tracker=tracker,
                             sats = sats,
                             timestamp = datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
@@ -209,63 +212,6 @@ def tracker_data(request):
             return HttpResponse("Unknown IMEI %s!" % imei)
             
         return HttpResponse("ok")
-    # try:
-    #     # MT;6;864713037301317;R0;5+220109033521+21.38810+-77.91893+0.33+0+0+3765+9
-    #     content = msg.split(';')
-    #     mode = int(content[1])
-    #     imei = int(content[2])
-    #     data = content[4].split('+')
-    #     sats = int(data[0])
-    #     timestamp = datetime.strptime(data[1],"%y%m%d%H%M%S")
-    #     lat = float(data[2])
-    #     lon = float(data[3])
-    #     speed = float(data[4])
-    #     heading = int(data[5])
-    #     event_id = int(data[6])
-    #     battery = float(data[7])/1000
-    #     sequence = int(data[8])        
-    # except:
-    #     print("Wrong FORMAT: %s" % msg)
-    #     payload = bytes([error_codes["Wrong FORMAT"]])
-    #     response = HttpResponse(payload)
-    #     return response
-    #
-    # try:
-    #     tracker = Tracker.objects.get(imei=imei) 
-    # except:
-    #     print("Wrong IMEI: %i" % imei)
-    #     payload = bytes([error_codes["Wrong IMEI"]])
-    #     response = HttpResponse(payload)
-    #     return response
-    # # Store data
-    # data = TrackerData( tracker=tracker,
-    #                     sats = sats,
-    #                     timestamp = timestamp,
-    #                     latitude = lat,
-    #                     longitude = lon,
-    #                     speed = speed,
-    #                     heading = heading,
-    #                     event_id = event_id,
-    #                     battery = battery,
-    #                     sequence = sequence,
-    #                     power = power_modes[mode],
-    #                     mode = mode)
-    #
-    # data.save()
-    #
-    # if (tracker.pendingConfigs != b''): # Send and clean pending data
-    #     nData = bytes([int(len(tracker.pendingConfigs)/3)])
-    #     payload = nData + tracker.pendingConfigs
-    #     response = HttpResponse(payload)
-    #     tracker.pendingConfigs = b''
-    #     tracker.save()
-    #     print("here")
-    #     return response        
-    # else:
-    #     payload = bytes([0])
-    #     response = HttpResponse(payload)
-    #     print("there")
-    #     return response
 
 # For those trackers that are new or lost their ID
 def tracker_id(request, passwd, imei):

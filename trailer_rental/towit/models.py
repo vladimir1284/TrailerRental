@@ -308,7 +308,7 @@ class Tracker(models.Model):
     last_update = models.DateTimeField(blank=True, null=True)
     imei = models.IntegerField()
     device_password = models.CharField(max_length=15, default="123456")
-    phone_number = models.CharField(max_length=15, blank=True)
+    device_id = models.IntegerField(blank=True)
     phone_password = models.CharField(max_length=15, blank=True)
     line_credit = models.FloatField(blank=True, null=True)
     # Configuration parameters
