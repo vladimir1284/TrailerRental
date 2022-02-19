@@ -63,50 +63,44 @@ class TrackerUpdateView(LoginRequiredMixin,UpdateView):
     template_name = 'towit/trailer/new_tracker.html' 
     
     def form_valid(self, form):
-        resp = {'status':'ok'}
+        resp = {}
         if(Tracker.objects.get(id=self.kwargs['pk']).Tint !=  form.instance.Tint):
-            storeForUpdate('Tint', form.instance.Tint, resp)
-        if(Tracker.objects.get(id=self.kwargs['pk']).TintB !=  form.instance.TintB):
-            storeForUpdate('TintB', form.instance.TintB, resp)
-        if(Tracker.objects.get(id=self.kwargs['pk']).Tcheck !=  form.instance.Tcheck):
-            storeForUpdate('Tcheck', form.instance.Tcheck, resp)
+            resp['Tint'] = form.instance.Tint
+        if(Tracker.objects.get(id=self.kwargs['pk']).TintB !=  form.instance.TintB):            
+            resp['TintB'] = form.instance.TintB
         if(Tracker.objects.get(id=self.kwargs['pk']).MAX_ERRORS !=  form.instance.MAX_ERRORS):
-            storeForUpdate('MAX_ERRORS', form.instance.MAX_ERRORS, resp)
-        if(Tracker.objects.get(id=self.kwargs['pk']).TGPS !=  form.instance.TGPS):
-            storeForUpdate('TGPS', form.instance.TGPS, resp)
+            resp['MAX_ERRORS'] = form.instance.MAX_ERRORS
+        if(Tracker.objects.get(id=self.kwargs['pk']).TGPS !=  form.instance.TGPS):            
+            resp['TGPS'] = form.instance.TGPS
         if(Tracker.objects.get(id=self.kwargs['pk']).TGPSB !=  form.instance.TGPSB):
-            storeForUpdate('TGPSB', form.instance.TGPSB, resp)
+            resp['TGPSB'] = form.instance.TGPSB
         if(Tracker.objects.get(id=self.kwargs['pk']).SMART !=  form.instance.SMART):
-            storeForUpdate('SMART', form.instance.SMART, resp)
+            resp['SMART'] = form.instance.SMART
         if(Tracker.objects.get(id=self.kwargs['pk']).Tsend !=  form.instance.Tsend):
-            storeForUpdate('Tsend', form.instance.Tsend, resp)
+            resp['Tsend'] = form.instance.Tsend
         if(Tracker.objects.get(id=self.kwargs['pk']).TsendB !=  form.instance.TsendB):
-            storeForUpdate('TsendB', form.instance.TsendB, resp)
-            
-        data={
-            "deviceid": form.instance.device_id,
-            "fromnumber":"+522221111122",
-            "body": json.dumps(resp)
-            }
-        try:
-            # Send SMS
-            response = requests.post(
-            'https://dashboard.hologram.io/api/1/sms/incoming',
-            data = data,
-            auth = HTTPBasicAuth(usr, pwd)
-            )
-            # Logs
-            print(response.json())    
-        except:
-            print(data)
+            resp['TsendB'] = form.instance.TsendB
+        
+        # Send sms when we detect changes in parameters 
+        if(len(resp) > 0):    
+            data={
+                "deviceid": form.instance.device_id,
+                "fromnumber":"+522221111122",
+                "body": json.dumps(resp)
+                }
+            try:
+                # Send SMS
+                response = requests.post(
+                'https://dashboard.hologram.io/api/1/sms/incoming',
+                data = data,
+                auth = HTTPBasicAuth(usr, pwd)
+                )
+                # Logs
+                print(response.json())    
+            except:
+                print(data)
             
         return super(TrackerUpdateView, self).form_valid(form)
-    
-def storeForUpdate(key, value, resp):
-    if 'configs' not in resp:
-        resp['configs'] = {}
-        
-    resp['configs'][key] = value
     
     
 class TrackerCreateView(LoginRequiredMixin,CreateView):
@@ -127,33 +121,6 @@ def delete_tracker(request, id):
     except:
         return redirect('/towit/trailers/')
     
-def tracker_parameters(request, passwd, tracker_id):
-    if (SKEY != passwd):
-        payload = bytes([error_codes["Wrong password"]])
-        response = HttpResponse(payload)
-        return response
-    try:
-        tracker = Tracker.objects.get(id=tracker_id) 
-    except:
-        payload = bytes([error_codes["Wrong ID"]])
-        response = HttpResponse(payload)
-        return response
-    # Prepare all data
-    storeForUpdate('Tint', tracker.Tint, tracker)
-    storeForUpdate('TintB', tracker.TintB, tracker)
-    storeForUpdate('Tcheck', tracker.Tcheck, tracker)
-    storeForUpdate('MAX_ERRORS', tracker.MAX_ERRORS, tracker)
-    storeForUpdate('TGPS', tracker.TGPS, tracker)
-    storeForUpdate('TGPSB', tracker.TGPSB, tracker)
-    storeForUpdate('SMART', tracker.SMART, tracker)
-    storeForUpdate('Tsend', tracker.Tsend, tracker)
-    storeForUpdate('TsendB', tracker.TsendB, tracker)
-    # Send data
-    nData = bytes([int(len(tracker.pendingConfigs)/3)])
-    payload = nData + tracker.pendingConfigs
-    response = HttpResponse(payload)
-    tracker.pendingConfigs = b''
-    return response   
     
 # Incoming data from a tracker
 @csrf_exempt
@@ -212,28 +179,6 @@ def tracker_data(request):
             return HttpResponse("Unknown IMEI %s!" % imei)
             
         return HttpResponse("ok")
-
-# For those trackers that are new or lost their ID
-def tracker_id(request, passwd, imei):
-    if (SKEY != passwd):
-        payload = bytes([error_codes["Wrong password"]])
-        response = HttpResponse(payload)
-        return response
-    try:
-        tracker = Tracker.objects.get(imei=imei)
-    except:
-        # Create a new tracker
-        tracker = Tracker(imei=imei)
-        tracker.save()
-    print(tracker)
-    nData = 1
-    trackerID_ADDR = 12
-    data_low = tracker.id & 0xff
-    data_high = (tracker.id >> 8) & 0xff
-    payload = bytes([nData, trackerID_ADDR, data_low, data_high])
-
-    response = HttpResponse(payload)
-    return response
 
 @login_required
 def tracker_detail(request, id):
