@@ -52,6 +52,7 @@ error_codes ={"Wrong password": 200,
             }
 
 power_modes ={1: False,
+              0: False,
               6: True,
             }
 
