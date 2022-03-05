@@ -162,6 +162,7 @@ def tracker_data(request):
             return HttpResponse("Malformed message!")
         try:
             tracker = Tracker.objects.get(imei=imei)
+            print(tracker)
             td = TrackerData( tracker=tracker,
                             sats = sats,
                             timestamp = datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
