@@ -52,8 +52,7 @@ error_codes ={"Wrong password": 200,
             }
 
 power_modes ={1: False,
-              0: False,
-              6: True,
+              0: True,
             }
 
 SKEY = "c0ntr453n1a"
@@ -187,12 +186,26 @@ def tracker_detail(request, id):
     tracker = Tracker.objects.get(id=id)
     
     try:
-        data = TrackerData.objects.filter(tracker=tracker).order_by("-timestamp")[:10]
-    except:
+        data = TrackerData.objects.filter(tracker=tracker).order_by("-timestamp")[:30]
+
+        if (data[0].mode == 0): # Powered
+            max_elapsed_time = 80*tracker.Tint
+        else:
+            max_elapsed_time = 80*tracker.TintB
+
+        elapsed_time = (datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)) - data[0].timestamp).total_seconds()
+
+        print("elapsed_time: %is" % elapsed_time)
+        print("max_elapsed_time: %is" % max_elapsed_time)
+
+        online = elapsed_time < max_elapsed_time
+    except Exception as err:
+        raise err 
         return render(request, 'towit/tracker/tracker.html', {'tracker': tracker})
     
     return render(request, 'towit/tracker/tracker_data.html', {'tracker': tracker,
                                                                'data': data[0],
+                                                               'online': online,
                                                                'history': data})
 @login_required
 def trackers(request):
