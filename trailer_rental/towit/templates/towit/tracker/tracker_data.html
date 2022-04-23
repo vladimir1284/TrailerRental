@@ -19,7 +19,7 @@
 {% block map %}
 
     <div id ="map"></div>
-    Last update: <b style="background: {% if element.mode  == 0%} #b9ec94 {% else %} #FF0000 {% endif %};">{{ data.timestamp|localtime }}</b>
+    Last update: <b style="background: {% if online == True %} #b9ec94 {% else %} #FF0000 {% endif %};">{{ data.timestamp|localtime }}</b>
    
     <script>
          // Creating map options
