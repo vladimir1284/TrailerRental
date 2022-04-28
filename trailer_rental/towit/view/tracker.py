@@ -1,11 +1,10 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView
-from ..forms import TrackerForm
+from towit.form.tracker import TrackerForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
-from towit.models import Tracker, TrackerData
-from weasyprint.css.computed_values import content
+from towit.model.tracker import Tracker, TrackerData
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 import pytz
@@ -100,6 +99,12 @@ class TrackerUpdateView(LoginRequiredMixin,UpdateView):
             except:
                 print(data)
             
+        # Update Traccar URL
+        trackers = Tracker.objects.all()
+        for tracker in trackers:
+            tracker.traccar_url = form.instance.traccar_url
+            tracker.save()
+
         return super(TrackerUpdateView, self).form_valid(form)
     
     
@@ -158,28 +163,57 @@ def tracker_data(request):
             print("lat: %.5f" % lat)
             print("lon: %.5f" % lon)
             print("speed: %.2fkm/h" % speed)
+ 
         except:
             return HttpResponse("Malformed message!")
         try:
             tracker = Tracker.objects.get(imei=imei)
             print(tracker)
-            td = TrackerData( tracker=tracker,
-                            sats = sats,
-                            timestamp = datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
-                            latitude = lat,
-                            longitude = lon,
-                            speed = speed,
-                            heading = heading,
-                            event_id = event,
-                            battery = vbat,
-                            sequence = seq,
-                            power = power_modes[mode],
-                            mode = mode)
-            td.save()
         except:
             return HttpResponse("Unknown IMEI %s!" % imei)
             
+        td = TrackerData( tracker=tracker,
+                        sats = sats,
+                        timestamp = datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
+                        latitude = lat,
+                        longitude = lon,
+                        speed = speed,
+                        heading = heading,
+                        event_id = event,
+                        battery = vbat,
+                        sequence = seq,
+                        power = power_modes[mode],
+                        mode = mode)
+        if tracker.feed_traccar:
+            sendOsmAnd(tracker, td)
+        td.save()
+            
         return HttpResponse("ok")
+
+@login_required
+def tracker_export(request, id):
+    tracker = Tracker.objects.get(id=id)
+    data = TrackerData.objects.filter(tracker=tracker)
+    for td in data:
+        sendOsmAnd(tracker, td)
+        
+    return render(request, 'towit/tracker/export_ok.html', {'tracker': tracker})
+
+def sendOsmAnd(tracker, td):
+    req_str = '{}?id={}&lat={}&lon={}&speed={}&batt={}&timestamp={}&heading={}'.format(
+                    tracker.traccar_url,
+                    tracker.imei, 
+                    td.latitude, 
+                    td.longitude, 
+                    td.speed/1.852, # Km/h to Nuts
+                    int(123-123/(1+(td.battery/3.7)**80)**0.165), 
+		            int(td.timestamp.timestamp()), 
+                    td.heading)
+    print(req_str)
+
+    r = requests.get(req_str)
+    if r.status_code != 200:
+        raise Exception('Status code != 200!') # Don't! If you catch, likely to hide bugs. 
 
 @login_required
 def tracker_detail(request, id):
@@ -201,7 +235,6 @@ def tracker_detail(request, id):
         online = elapsed_time < max_elapsed_time
     except Exception as err:
         raise err 
-        return render(request, 'towit/tracker/tracker.html', {'tracker': tracker})
     
     return render(request, 'towit/tracker/tracker_data.html', {'tracker': tracker,
                                                                'data': data[0],

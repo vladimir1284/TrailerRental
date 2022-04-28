@@ -1,0 +1,16 @@
+{% extends 'towit/tracker/tracker.html' %}
+
+
+{% block table %}  
+
+    <hr class="mt-0 mb-4">
+    <h4 class="mt-3">Exported successfully! </b>
+        <a href="/towit/tracker_detail/{{ tracker.id }}">
+            <button class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Copy to clipboard"">
+                <i class="fa fa-arrow-left"></i>
+            </button>
+        </a>
+    </h4>  
+   
+{% endblock %} 
+	

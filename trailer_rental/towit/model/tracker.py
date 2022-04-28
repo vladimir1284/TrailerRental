@@ -1,0 +1,50 @@
+from django.db import models
+from datetime import datetime
+from django.urls import reverse
+from django.contrib.auth.models import User
+from ..models import User
+
+class Tracker(models.Model):
+    owner = models.ForeignKey(User,
+                            default=None,  
+                            null=True,
+                            blank=True,
+                            on_delete=models.SET_DEFAULT,
+                            related_name='tracker_owner')
+    last_update = models.DateTimeField(blank=True, null=True)
+    imei = models.IntegerField()
+    device_password = models.CharField(max_length=15, default="123456")
+    device_id = models.IntegerField(blank=True)
+    phone_password = models.CharField(max_length=15, blank=True)
+    traccar_url = models.CharField(max_length=500, blank=True)
+    feed_traccar = models.BooleanField(default=False)
+    # Configuration parameters
+    pendingConfigs = models.BinaryField(default=b'')
+    Tcheck = models.IntegerField(default=15)
+    MAX_ERRORS = models.IntegerField(default=3)
+    Tint = models.IntegerField(default=60)
+    TintB = models.IntegerField(default=360)
+    TGPS = models.IntegerField(default=10)
+    TGPSB = models.IntegerField(default=10)
+    SMART = models.BooleanField(default=False)
+    Tsend = models.IntegerField(default=10)
+    TsendB = models.IntegerField(default=10)
+    
+    def get_absolute_url(self):
+        return reverse('tracker_detail', kwargs={'id': self.id})
+
+class TrackerData(models.Model):
+    tracker = models.ForeignKey(Tracker,
+                            on_delete=models.CASCADE,
+                            related_name='data_tracker')
+    sats = models.IntegerField(blank=True, null=True)
+    timestamp = models.DateTimeField(default=datetime.now)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    speed = models.FloatField(blank=True, null=True)
+    heading = models.IntegerField(blank=True, null=True)
+    battery = models.FloatField(blank=True, null=True)
+    power = models.BooleanField(blank=True, null=True)    
+    mode = models.IntegerField(blank=True, null=True)
+    event_id = models.IntegerField(blank=True, null=True)
+    sequence = models.IntegerField(blank=True, null=True)

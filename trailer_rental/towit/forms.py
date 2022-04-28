@@ -1,6 +1,7 @@
 from django.forms import ModelForm
 from django import forms
 from .models import *
+from .model.tracker import *
 from .widgets import BootstrapDateTimePickerInput, BootstrapYearPickerInput
 from django.core.files.images import get_image_dimensions
 from crispy_forms.helper import FormHelper
@@ -356,106 +357,6 @@ class LesseeForm(ModelForm):
             )
         )
      
-class TrackerForm(ModelForm):
-    class Meta:
-        model = Tracker    
-        fields = ('owner', 'imei',  'device_password',  'device_id', 
-                  'phone_password', 'Tcheck' , 'MAX_ERRORS', 'Tint', 'TintB', 
-                  'TGPS', 'TGPSB', 'SMART', 'Tsend', 'TsendB')         
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)                
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                'Tracker device',
-                Div(
-                    Div(
-                        'imei',
-                        css_class = 'col-6'
-                    ),
-                    Div(
-                        'device_password',
-                        css_class = 'col-6'
-                    ),
-                    css_class = 'row'
-                )
-            ),
-            Fieldset(
-                'SIM',
-                Div(
-                    Div(
-                        'device_id',
-                        css_class = 'col-6'
-                    ),
-                    Div(
-                        'phone_password',
-                        css_class = 'col-6'
-                    ),
-                    css_class = 'row'
-                ),
-            'owner',
-            ),
-            Fieldset(
-                'General',
-                Div(
-                    Div(
-                        'MAX_ERRORS',
-                        css_class = 'col-4'
-                    ),
-                    Div(
-                        'SMART',
-                        css_class = 'col-4'
-                    ),
-                    Div(
-                        AppendedText('Tcheck',"min"),
-                        css_class = 'col-4'
-                    ),                    
-                    css_class = 'row'
-                )
-            ),
-            Fieldset(
-                'Powered times',
-                Div(
-                    Div(
-                        AppendedText('Tint',"min"),
-                        css_class = 'col-4'
-                    ),
-                    Div(
-                        AppendedText('Tsend',"min"),
-                        css_class = 'col-4'
-                    ),
-                    Div(
-                        AppendedText('TGPS',"min"),
-                        css_class = 'col-4'
-                    ),
-                    css_class = 'row'
-                )
-            ),
-            Fieldset(
-                'Battery times',
-                Div(
-                    Div(
-                        AppendedText('TintB',"min"),
-                        css_class = 'col-4'
-                    ),
-                    Div(
-                        AppendedText('TsendB',"min"),
-                        css_class = 'col-4'
-                    ),
-                    Div(
-                        AppendedText('TGPSB',"min"),
-                        css_class = 'col-4'
-                    ),
-                    css_class = 'row'
-                )
-            ),
-            ButtonHolder(
-                Submit('submit', 'Register tracker', css_class='btn btn-success')
-                )
-            
-        )
-       
      
 class LeaseForm(ModelForm):
     class Meta:

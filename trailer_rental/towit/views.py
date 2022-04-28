@@ -17,7 +17,7 @@ import os
 import base64
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
-from towit.models import Tracker
+from .model.tracker import Tracker
 
 @login_required
 def contact_detail(request, id):
