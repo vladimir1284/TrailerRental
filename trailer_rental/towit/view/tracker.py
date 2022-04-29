@@ -213,7 +213,7 @@ def sendOsmAnd(tracker, td):
 
     r = requests.get(req_str)
     if r.status_code != 200:
-        raise Exception('Status code != 200!') # Don't! If you catch, likely to hide bugs. 
+        print('Status code != 200!')
 
 @login_required
 def tracker_detail(request, id):
