@@ -211,9 +211,12 @@ def sendOsmAnd(tracker, td):
                     td.heading)
     print(req_str)
 
-    r = requests.get(req_str)
-    if r.status_code != 200:
-        print('Status code != 200!')
+    try:
+        r = requests.get(req_str)
+        if r.status_code != 200:
+            print('Status code != 200!')
+    except Exception as err:
+        print(err)
 
 @login_required
 def tracker_detail(request, id):
