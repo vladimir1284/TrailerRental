@@ -186,7 +186,8 @@ def tracker_data(request):
                         mode = mode)
         td.save()
             
-        return SendOsmAndAfterResponse(tracker, td, "ok")
+        return HttpResponse("ok")
+        # return SendOsmAndAfterResponse(tracker, td, "ok") TODO this should be asynchronous https://stackoverflow.com/questions/50511905/cannot-start-celery-worker-kombu-asynchronous-timer/69411028#69411028
 
 # use custom response class to override HttpResponse.close()
 class SendOsmAndAfterResponse(HttpResponse):
