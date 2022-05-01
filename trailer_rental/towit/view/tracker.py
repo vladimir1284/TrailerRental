@@ -184,11 +184,23 @@ def tracker_data(request):
                         sequence = seq,
                         power = power_modes[mode],
                         mode = mode)
-        if tracker.feed_traccar:
-            sendOsmAnd(tracker, td)
         td.save()
             
-        return HttpResponse("ok")
+        return SendOsmAndAfterResponse(tracker, td, "ok")
+
+# use custom response class to override HttpResponse.close()
+class SendOsmAndAfterResponse(HttpResponse):
+
+    def __init__(self, tracker, td, content=b'',  *args, **kwargs):
+        super().__init__(content=content, *args, **kwargs)
+        self._tracker = tracker
+        self._td = td
+
+    def close(self):
+        super(SendOsmAndAfterResponse, self).close()
+        # do whatever you want, this is the last codepoint in request handling        
+        if self._tracker.feed_traccar:
+            sendOsmAnd(self._tracker, self._td)
 
 @login_required
 def tracker_export(request, id):
