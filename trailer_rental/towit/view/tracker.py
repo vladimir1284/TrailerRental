@@ -4,7 +4,7 @@ from towit.form.tracker import TrackerForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
-from towit.model.tracker import Tracker, TrackerData
+from towit.model.tracker import Tracker, TrackerData, TrackerDebugData, TrackerDebugError, TrackerDebugGPS, TrackerDebugStartup
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 import pytz
@@ -189,6 +189,110 @@ def tracker_data(request):
         return HttpResponse("ok")
         # return SendOsmAndAfterResponse(tracker, td, "ok") TODO this should be asynchronous https://stackoverflow.com/questions/50511905/cannot-start-celery-worker-kombu-asynchronous-timer/69411028#69411028
 
+# Incoming debug data from a tracker
+@csrf_exempt
+def tracker_debug(request): 
+    if request.method == 'POST':
+        """
+          Parse data from tracker
+          msg structure:    
+            imei,seq,mode,event,lat,lon,speed,heading,sats,vbat
+        """ 
+        try:
+            msg = request.body.decode()
+            print(msg)
+        except:
+            return HttpResponse("Wrong codification!")
+        try:
+            data = msg.split(',')
+            msg_type = data[0]
+            imei     = int(data[1]) 
+            seq      = int(data[2])
+            mode     = int(data[3])
+            vbat     = int(data[4])/1000. # Volts
+
+            print("IMEI #: %i" % imei)
+            print("seq #: %i" % seq)
+            print("mode: %i" % mode)
+            print("vbat: %.3fV" % vbat)
+ 
+        except:
+            return HttpResponse("Malformed message!")
+        try:
+            tracker = Tracker.objects.get(imei=imei)
+            print(tracker)
+        except:
+            return HttpResponse("Unknown IMEI %s!" % imei)
+
+        tdd = TrackerDebugData( tracker=tracker,
+                        timestamp = datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
+                        battery = vbat,
+                        sequence = seq,
+                        mode = mode)
+        tdd.save()
+
+        if msg_type == "gps":
+            event    = int(data[5])
+            lat      = float(data[6])
+            lon      = float(data[7])
+            speed    = int(data[8])
+            heading  = int(data[9])
+            sats     = int(data[10])
+            gps_delay = int(data[11])
+            lte_delay = int(data[12])
+            print("event id: %i" % event)
+            print("number of sats: %i" % sats)
+            print("heading: %ideg" % heading)
+            print("lat: %.5f" % lat)
+            print("lon: %.5f" % lon)
+            print("speed: %.2fkm/h" % speed)
+            print("GPS delay: %is" % gps_delay)
+            print("LTE delay: %is" % lte_delay)
+
+            tdg = TrackerDebugGPS(
+                        tdd = tdd,
+                        sats = sats,
+                        latitude = lat,
+                        longitude = lon,
+                        speed = speed,
+                        heading = heading,
+                        #event_id = event,
+                        gps_delay = gps_delay,
+                        lte_delay = lte_delay
+            )
+            tdg.save()
+
+        if msg_type == "error":
+            gps_delay = int(data[5])
+            lte_delay = int(data[6])
+            print("GPS delay: %is" % gps_delay)
+            print("LTE delay: %is" % lte_delay)
+
+            tde = TrackerDebugError(
+                        tdd = tdd,
+                        gps_delay = gps_delay,
+                        lte_delay = lte_delay
+            )
+            tde.save()
+
+        if msg_type == "wake":
+            lte_delay = int(data[5])
+            wake_reason = int(data[6])
+            reset_cause = int(data[7])
+            print("LTE delay: %is" % lte_delay)
+            print("Wake reason: %i" % wake_reason)
+            print("Reset cause: %i" % reset_cause)
+
+            tds = TrackerDebugStartup(
+                    tdd = tdd,
+                    wake_reason = wake_reason,
+                    reset_cause = reset_cause,
+                    lte_delay = lte_delay
+            )
+            tds.save()
+
+        return HttpResponse("ok")
+
 # use custom response class to override HttpResponse.close()
 class SendOsmAndAfterResponse(HttpResponse):
 
@@ -256,6 +360,21 @@ def tracker_detail(request, id):
                                                                'data': data[0],
                                                                'online': online,
                                                                'history': data})
+
+@login_required
+def debug_detail(request, id):
+    tracker = Tracker.objects.get(id=id)
+    
+    try:
+        data = TrackerDebugData.objects.filter(tracker=tracker).order_by("-timestamp")[:50]
+
+    except Exception as err:
+        raise err 
+    
+    return render(request, 'towit/tracker/debug_data.html', {'tracker': tracker,
+                                                               'data': data})
+
+
 @login_required
 def trackers(request):
     trackers = Tracker.objects.all()

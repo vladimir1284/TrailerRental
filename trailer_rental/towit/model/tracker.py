@@ -48,3 +48,41 @@ class TrackerData(models.Model):
     mode = models.IntegerField(blank=True, null=True)
     event_id = models.IntegerField(blank=True, null=True)
     sequence = models.IntegerField(blank=True, null=True)
+
+class TrackerDebugData(models.Model):
+    tracker = models.ForeignKey(Tracker,
+                            on_delete=models.CASCADE,
+                            related_name='debug_tracker')
+    timestamp = models.DateTimeField(default=datetime.now)
+    battery = models.FloatField(blank=True, null=True)   
+    mode = models.IntegerField(blank=True, null=True)
+    sequence = models.IntegerField(blank=True, null=True)
+
+class TrackerDebugGPS(models.Model):
+    tdd = models.OneToOneField(TrackerDebugData,
+                            on_delete=models.CASCADE,
+                            primary_key=True)
+    sats = models.IntegerField(blank=True, null=True)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    speed = models.FloatField(blank=True, null=True)
+    heading = models.IntegerField(blank=True, null=True)
+    gps_delay = models.IntegerField(blank=True, null=True)
+    lte_delay = models.IntegerField(blank=True, null=True)
+
+class TrackerDebugStartup(models.Model):
+    tdd = models.OneToOneField(TrackerDebugData,
+                            on_delete=models.CASCADE,
+                            primary_key=True)
+    wake_reason = models.IntegerField(blank=True, null=True)
+    reset_cause = models.IntegerField(blank=True, null=True)
+    lte_delay = models.IntegerField(blank=True, null=True)
+
+class TrackerDebugError(models.Model):
+    tdd = models.OneToOneField(TrackerDebugData,
+                            on_delete=models.CASCADE,
+                            primary_key=True)
+    gps_delay = models.IntegerField(blank=True, null=True)
+    lte_delay = models.IntegerField(blank=True, null=True)
+
+

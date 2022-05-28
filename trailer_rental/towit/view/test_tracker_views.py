@@ -42,5 +42,5 @@ def processResult(result):
 # processResult(result)
 
 # Upload data
-result = requests.get("http://localhost:8000/towit/tracker_data/c0ntr453n1a/3/2133456/7893457/72/1/2/0")
+result = requests.get("http://trailerrental.pythonanywhere.com/towit/tracker_data/c0ntr453n1a/3/2133456/7893457/72/1/2/0")
 processResult(result)
