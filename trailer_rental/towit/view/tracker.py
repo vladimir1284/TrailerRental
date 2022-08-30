@@ -7,7 +7,6 @@ from django.http import HttpResponse
 from towit.model.tracker import Tracker, TrackerData, TrackerDebugData, TrackerDebugError, TrackerDebugGPS, TrackerDebugStartup
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
-import pytz
 from django.conf import settings
 import requests
 import json
@@ -16,6 +15,8 @@ from ..config import pwd
 
 # Authentication
 usr = 'apikey'
+
+import pytz
 
 """
 Response binary datagram
