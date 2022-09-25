@@ -107,13 +107,13 @@
             trackers.forEach(tracker => {
                 let date = new Date(tracker.timestamp);
                 let marker = L.marker([tracker.latitude, tracker.longitude], markerDict[tracker.online]).addTo(map);
-                marker.bindPopup(`<div style="font-size: 24px;"> <b>Tracker ${tracker.tracker}</b></br>
+                marker.bindPopup(`<div style="font-size: 24px;"> <a href="/towit/tracker_detail/${tracker.tracker}">Tracker ${tracker.tracker}</a></br>
                                     Bat:  <span style="background-color:
-                                            ${{0:'lightcoral', 1:'lightgreen'}[tracker.mode]}">
+                                            ${{1:'lightcoral', 0:'lightgreen'}[tracker.mode]}">
                                             ${Math.round(tracker.battery * 100) / 100}V
                                         </span></br>
                                     ${date.format("mmm dd, h:MMtt")}</br>
-                                    Speed: ${tracker.speed}km/h</div>`).openPopup();
+                                    Speed: ${tracker.speed}km/h</div>`);
                 marker.addTo(map); // Adding marker to the map
                 if (tracker.latitude > maxLat) maxLat = tracker.latitude;
                 if (tracker.longitude > maxLon) maxLon = tracker.longitude;
