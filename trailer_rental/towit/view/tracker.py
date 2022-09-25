@@ -9,6 +9,7 @@ from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 import requests
+from django.http import JsonResponse
 import json
 from requests.auth import HTTPBasicAuth
 from ..config import pwd
@@ -375,6 +376,42 @@ def debug_detail(request, id):
     return render(request, 'towit/tracker/debug_data.html', {'tracker': tracker,
                                                                'data': data})
 
+
+@login_required
+def trackers_data(request):
+    trackers = Tracker.objects.all()
+    data = []
+    for tracker in trackers:
+        try:
+            td = TrackerData.objects.filter(tracker=tracker).order_by("-timestamp")[0]
+            if (td.mode == 0): # Powered
+                max_elapsed_time = 80*tracker.Tint
+            else:
+                max_elapsed_time = 80*tracker.TintB
+
+            elapsed_time = (datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)) - td.timestamp).total_seconds()
+
+            print("elapsed_time: %is" % elapsed_time)
+            print("max_elapsed_time: %is" % max_elapsed_time)
+
+            online = elapsed_time < max_elapsed_time
+
+            data.append({
+                'tracker': td.tracker.id,
+                'timestamp': td.timestamp,
+                'latitude': td.latitude,
+                'longitude': td.longitude,
+                'speed': td.speed,
+                'heading': td.heading,
+                'battery': td.battery,
+                'mode': td.mode,
+                'power': td.power,
+                'online': online
+            })
+
+        except Exception as err:
+            raise err 
+    return JsonResponse({'data':data})
 
 @login_required
 def trackers(request):
