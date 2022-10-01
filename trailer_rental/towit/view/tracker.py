@@ -418,5 +418,37 @@ def trackers(request):
     trackers = Tracker.objects.all()
     return render(request, 'towit/tracker/trackers.html', {'trackers': trackers})
 
+@login_required
+def trackers_table(request):
+    trcks = Tracker.objects.all()
+    trackers = []
+    for tracker in trcks:
+        try:
+            td = TrackerData.objects.filter(tracker=tracker).order_by("-timestamp")[0]
+            if (td.mode == 0): # Powered
+                max_elapsed_time = 80*tracker.Tint
+            else:
+                max_elapsed_time = 80*tracker.TintB
+
+            elapsed_time = (datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)) - td.timestamp).total_seconds()
+
+            print("elapsed_time: %is" % elapsed_time)
+            print("max_elapsed_time: %is" % max_elapsed_time)
+
+            online = elapsed_time < max_elapsed_time
+
+            trackers.append({
+                'id': td.tracker.id,
+                'updated': td.timestamp,
+                'bat': int(td.battery*100)/100.,
+                'mode': td.mode,
+                'online': online,
+                'lessee_name': td.tracker.lessee_name,
+                'tracker_description': td.tracker.tracker_description,
+            })
+
+        except Exception as err:
+            print(err)
+    return render(request, 'towit/tracker/trackers_table.html', {'trackers': trackers})
 
 

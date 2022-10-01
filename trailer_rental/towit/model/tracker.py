@@ -25,10 +25,14 @@ class Tracker(models.Model):
     Tint = models.IntegerField(default=60)
     TintB = models.IntegerField(default=360)
     TGPS = models.IntegerField(default=10)
-    TGPSB = models.IntegerField(default=10)
+    TGPSB = models.IntegerField(default=5)
     SMART = models.BooleanField(default=False)
-    Tsend = models.IntegerField(default=10)
-    TsendB = models.IntegerField(default=10)
+    Tsend = models.IntegerField(default=5)
+    TsendB = models.IntegerField(default=3)
+    # Tracker and lessee Data
+    tracker_description = models.CharField(max_length=50, default="")
+    tracker_bin_number = models.CharField(max_length=50, default="")
+    lessee_name = models.CharField(max_length=50, default="")
     
     def get_absolute_url(self):
         return reverse('tracker_detail', kwargs={'id': self.id})
