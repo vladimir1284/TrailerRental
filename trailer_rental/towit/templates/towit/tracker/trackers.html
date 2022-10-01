@@ -15,6 +15,31 @@
         
         <style>
             #map { height: 950px; }
+            #map .leaflet-div-icon {
+                width:0;
+                height:0;
+                border: 0;
+                padding: 0;
+                background: transparent;
+              }
+            div.counter {
+                position: relative;
+                display: inline-block;
+            }
+            div.counter span {
+                position: absolute;    
+                text-align: center;
+                color: white;
+                font-size: 18px;
+                height: 100%;
+                width: 100%;
+            }
+            div.counter span:before {
+               display: inline-block;
+               vertical-align: -90%;
+               height: 100%;
+               content: '';
+            }
         </style>
     {% endblock %} 
     
@@ -26,6 +51,8 @@
             }
         }
     </script>
+
+    
 {% endblock %} 
 	           
 {% block nav %}
@@ -76,37 +103,23 @@
         }
         $.getJSON('data', function(data) {
             let trackers = data.data;
-            // Icon options
-            let iconOptionsRed = {
-                iconUrl: "{% static '/pictures/icon_red.png' %}",
-                iconSize: [50, 50],
-                iconAnchor: [25, 50],
-                popupAnchor: [0, -51]
-            }
-            let iconOptionsGreen = {
-                iconUrl: "{% static '/pictures/icon_green.png' %}",
-                iconSize: [50, 50],
-                iconAnchor: [25, 50],
-                popupAnchor: [0, -51]
-            }
-            // Creating a custom icon
-            let redIcon = L.icon(iconOptionsRed);
-            let greenIcon = L.icon(iconOptionsGreen);
-            // Options for the marker
-            let markerRed = {
-                icon: redIcon
-            }
-            let markerGreen = {
-                icon: greenIcon
-            }
-            markerDict = {true: markerGreen, false: markerRed}
+            
+            markerDict = {true: "{% static '/pictures/icon_green.png' %}", false: "{% static '/pictures/icon_red.png' %}"}
             let minLon = 0;
             let maxLon = -180;
             let minLat = 90;
             let maxLat = 0;
             trackers.forEach(tracker => {
                 let date = new Date(tracker.timestamp);
-                let marker = L.marker([tracker.latitude, tracker.longitude], markerDict[tracker.online]).addTo(map);
+
+                // Creating a custom icon
+                let icon = L.divIcon({html: `<div class='counter'> <span>${tracker.tracker}</span> <img src=${markerDict[tracker.online]} > </div>`,
+                                        iconSize: [50, 50],
+                                        iconAnchor: [25, 50],
+                                        popupAnchor: [0, -51]});
+
+                let marker = L.marker([tracker.latitude, tracker.longitude], {icon: icon}).addTo(map);
+
                 marker.bindPopup(`<div style="font-size: 24px;"> <a href="/towit/tracker_detail/${tracker.tracker}">Tracker ${tracker.tracker}</a></br>
                                     Bat:  <span style="background-color:
                                             ${{1:'lightcoral', 0:'lightgreen'}[tracker.mode]}">

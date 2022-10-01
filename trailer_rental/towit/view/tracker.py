@@ -410,7 +410,7 @@ def trackers_data(request):
             })
 
         except Exception as err:
-            raise err 
+            print(err)
     return JsonResponse({'data':data})
 
 @login_required
