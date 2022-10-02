@@ -30,8 +30,8 @@ class Tracker(models.Model):
     Tsend = models.IntegerField(default=5)
     TsendB = models.IntegerField(default=3)
     # Tracker and lessee Data
-    tracker_description = models.CharField(max_length=50, default="")
-    tracker_bin_number = models.CharField(max_length=50, default="")
+    trailer_description = models.CharField(max_length=100, default="")
+    trailer_bin_number = models.CharField(max_length=50, default="")
     lessee_name = models.CharField(max_length=50, default="")
     
     def get_absolute_url(self):

@@ -35,7 +35,7 @@
 		        <tr>
 				  <td> <a class="tracker-link" href="/towit/tracker_detail/{{ tracker.id }}"> {{ tracker.id }} </a></td>
 				  <td> {{ tracker.lessee_name }}</td>
-				  <td> {{ tracker.tracker_description }}</td>
+				  <td> {{ tracker.trailer_description }}</td>
 				  <td style="background: {% if tracker.mode  == 0%} #b9ec94 {% else %} #f5ada1 {% endif %};text-align: center;"> {{ tracker.bat }}V</td>
 				  <td class="datetime" style="background: {% if tracker.online == True %} #b9ec94 {% else %} #FF0000 {% endif %};"> {{ tracker.updated|utc|date:'m/d/Y h:i:s A' }}</td>
 		        </tr>	    

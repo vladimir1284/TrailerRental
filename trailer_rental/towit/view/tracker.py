@@ -339,10 +339,17 @@ def sendOsmAnd(tracker, td):
 
 @login_required
 def tracker_detail(request, id):
+    return render(request, 'towit/tracker/tracker_data.html', getTrackerDetails(id, 30))
+
+@login_required
+def tracker_detail_n(request, id, n):    
+    return render(request, 'towit/tracker/tracker_data.html', getTrackerDetails(id, n))
+
+def getTrackerDetails(id, n):
     tracker = Tracker.objects.get(id=id)
     
     try:
-        data = TrackerData.objects.filter(tracker=tracker).order_by("-timestamp")[:30]
+        data = TrackerData.objects.filter(tracker=tracker).order_by("-timestamp")[:n]
 
         if (data[0].mode == 0): # Powered
             max_elapsed_time = 80*tracker.Tint
@@ -357,11 +364,11 @@ def tracker_detail(request, id):
         online = elapsed_time < max_elapsed_time
     except Exception as err:
         raise err 
-    
-    return render(request, 'towit/tracker/tracker_data.html', {'tracker': tracker,
-                                                               'data': data[0],
-                                                               'online': online,
-                                                               'history': data})
+    return {'tracker': tracker,
+            'data': data[0],
+            'online': online,
+            'history': data}
+
 
 @login_required
 def debug_detail(request, id):
@@ -444,7 +451,7 @@ def trackers_table(request):
                 'mode': td.mode,
                 'online': online,
                 'lessee_name': td.tracker.lessee_name,
-                'tracker_description': td.tracker.tracker_description,
+                'trailer_description': td.tracker.trailer_description,
             })
 
         except Exception as err:
