@@ -101,25 +101,24 @@ class TrackerForm(ModelForm):
             Fieldset(
                 'Battery times',
                 Div(
-                    Div(
-                        AppendedText('TintB', "min"),
-                        css_class='col-4'
-                    ),
-            Fieldset(
-                'Trailer data',
-                    Div(
-                        AppendedText('TsendB', "min"),
-                        css_class='col-4'
-                    ),
-                    Div(
-                        AppendedText('TGPSB', "min"),
-                        css_class='col-4'
-                    ),
-                    css_class='row'
+                    AppendedText('TintB', "min"),
+                    css_class='col-4'
                 )
             ),
             Fieldset(
                 'Trailer data',
+                Div(
+                    AppendedText('TsendB', "min"),
+                    css_class='col-4'
+                ),
+                Div(
+                    AppendedText('TGPSB', "min"),
+                    css_class='col-4'
+                ),
+                css_class='row'
+            ),
+            Fieldset(
+                'Tracker data',
                 Div(
                     'trailer_description',
                     css_class='col-12'
