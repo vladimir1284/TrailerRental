@@ -2,14 +2,15 @@
 
 {% load tz %}
 
+{% load static %}
+
 {% block map_scripts %}  
 	 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
    crossorigin=""/>
    
-	 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
-   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
-   crossorigin=""></script>
+   <script type="text/javascript" src="{% static '/js/leaflet.js' %}"></script>
+   <script type="text/javascript" src="{% static '/js/date.format.js' %}"></script>
 	 
 	 <style>
 	   #map { height: 450px; }
@@ -19,13 +20,13 @@
 {% block map %}
 
     <div id ="map"></div>
-    Last update: <b style="background: {% if online == True %} #b9ec94 {% else %} #FF0000 {% endif %};">{{ data.timestamp|localtime }}</b>
-   
+    Last update: <b class="datetime" style="background: {% if online == True %} #b9ec94 {% else %} #FF0000 {% endif %};">{{ data.timestamp|utc|date:'m/d/Y h:i:s A' }}</b>
+
     <script>
          // Creating map options
          var mapOptions = {
          center: [{{ data.latitude }}, {{ data.longitude }}],
-         zoom: 12
+         zoom: 6
          }
          
          // Creating a map object
@@ -69,6 +70,9 @@
         <button onclick="uploadHistory()" class="btn btn-primary data-toggle="tooltip" data-placement="left" title="Copy to clipboard"">
 		    <i class="fa fa-share"></i>
 	    </button>
+        <a href="/towit/tracker_detail/{{ tracker.id }}/100">
+		    <i class="fa fa-search"></i>
+	    </a>
     </h4>  
     
     <div class="row">
@@ -95,8 +99,8 @@
                     <tr>
                     <td> {{ element.sequence }} </a></td>
                     <td>                      
-                        <button onclick="update_map({{ element.latitude }}, {{ element.longitude }}, {{ element.speed }}, '{{ element.timestamp }}')"> 
-                            {{ element.timestamp|localtime|date:'M d, h:ia' }} 
+                        <button class="datetime" onclick="update_map({{ element.latitude }}, {{ element.longitude }}, {{ element.speed }}, '{{ element.timestamp }}')"> 
+                            {{ element.timestamp|utc|date:'m/d/Y h:i:s A' }} 
                         </button>
                     </td>
                     <!-- <td> {{ element.latitude }}</td>
@@ -109,11 +113,25 @@
             </table>
         </div>
         <div class="col-6">
-            <b>Datetime: </b><div id="datetime">{{ data.timestamp|localtime }}</div>
+            <b>Datetime: </b><div class="datetime" id="datetime">{{ data.timestamp|utc|date:'m/d/Y h:i:s A' }}</div>
             <b>Latitude: </b><div id="lat">{{ data.latitude }}</div>
             <b>Longitude: </b><div id="lon">{{ data.longitude }}</div>
             <b>Speed: </b><div id="speed">{{ data.speed }}</div>
         </div>
     </div>
+
+    <script>
+
+        function updateTZ() {
+            let elements = document.getElementsByClassName("datetime");
+            for (let element of elements){
+                let date = new Date(element.innerHTML + ' UTC');
+                console.log(date);
+                element.innerHTML = date.format("mmm dd, h:MMtt");
+            }
+        }
+
+        updateTZ();
+    </script>
 {% endblock %} 
 	

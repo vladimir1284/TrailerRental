@@ -1,22 +1,30 @@
+import pytz
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView
 from towit.form.tracker import TrackerForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
-from django.http import JsonResponse
-from towit.model.tracker import Tracker, TrackerData, TrackerUpload
+from towit.model.tracker import (
+    Tracker,
+    TrackerData,
+    TrackerDebugData,
+    TrackerDebugError,
+    TrackerDebugGPS,
+    TrackerDebugStartup,
+    TrackerUpload)
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
-import pytz
 from django.conf import settings
 import requests
+from django.http import JsonResponse
 import json
 from requests.auth import HTTPBasicAuth
 from ..config import pwd
 
 # Authentication
 usr = 'apikey'
+
 
 """
 Response binary datagram
@@ -192,6 +200,290 @@ def tracker_data(request):
         td.save()
         return HttpResponse("ok")
 
+# Incoming debug data from a tracker
+
+
+@csrf_exempt
+def tracker_debug(request):
+    if request.method == 'POST':
+        """
+          Parse data from tracker
+          msg structure:    
+            imei,seq,mode,event,lat,lon,speed,heading,sats,vbat
+        """
+        try:
+            msg = request.body.decode()
+            print(msg)
+        except:
+            return HttpResponse("Wrong codification!")
+        try:
+            data = msg.split(',')
+            msg_type = data[0]
+            imei = int(data[1])
+            seq = int(data[2])
+            mode = int(data[3])
+            vbat = int(data[4])/1000.  # Volts
+
+            print("IMEI #: %i" % imei)
+            print("seq #: %i" % seq)
+            print("mode: %i" % mode)
+            print("vbat: %.3fV" % vbat)
+
+        except:
+            return HttpResponse("Malformed message!")
+        try:
+            tracker = Tracker.objects.get(imei=imei)
+            print(tracker)
+        except:
+            return HttpResponse("Unknown IMEI %s!" % imei)
+
+        tdd = TrackerDebugData(tracker=tracker,
+                               timestamp=datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
+                               battery=vbat,
+                               sequence=seq,
+                               mode=mode)
+        tdd.save()
+
+        if msg_type == "gps":
+            event = int(data[5])
+            lat = float(data[6])
+            lon = float(data[7])
+            speed = int(data[8])
+            heading = int(data[9])
+            sats = int(data[10])
+            gps_delay = int(data[11])
+            lte_delay = int(data[12])
+            print("event id: %i" % event)
+            print("number of sats: %i" % sats)
+            print("heading: %ideg" % heading)
+            print("lat: %.5f" % lat)
+            print("lon: %.5f" % lon)
+            print("speed: %.2fkm/h" % speed)
+            print("GPS delay: %is" % gps_delay)
+            print("LTE delay: %is" % lte_delay)
+
+            tdg = TrackerDebugGPS(
+                tdd=tdd,
+                sats=sats,
+                latitude=lat,
+                longitude=lon,
+                speed=speed,
+                heading=heading,
+                #event_id = event,
+                gps_delay=gps_delay,
+                lte_delay=lte_delay
+            )
+            tdg.save()
+
+        if msg_type == "error":
+            gps_delay = int(data[5])
+            lte_delay = int(data[6])
+            print("GPS delay: %is" % gps_delay)
+            print("LTE delay: %is" % lte_delay)
+
+            tde = TrackerDebugError(
+                tdd=tdd,
+                gps_delay=gps_delay,
+                lte_delay=lte_delay
+            )
+            tde.save()
+
+        if msg_type == "wake":
+            lte_delay = int(data[5])
+            wake_reason = int(data[6])
+            reset_cause = int(data[7])
+            print("LTE delay: %is" % lte_delay)
+            print("Wake reason: %i" % wake_reason)
+            print("Reset cause: %i" % reset_cause)
+
+            tds = TrackerDebugStartup(
+                tdd=tdd,
+                wake_reason=wake_reason,
+                reset_cause=reset_cause,
+                lte_delay=lte_delay
+            )
+            tds.save()
+
+        return HttpResponse("ok")
+
+# use custom response class to override HttpResponse.close()
+
+
+class SendOsmAndAfterResponse(HttpResponse):
+
+    def __init__(self, tracker, td, content=b'',  *args, **kwargs):
+        super().__init__(content=content, *args, **kwargs)
+        self._tracker = tracker
+        self._td = td
+
+    def close(self):
+        super(SendOsmAndAfterResponse, self).close()
+        # do whatever you want, this is the last codepoint in request handling
+        if self._tracker.feed_traccar:
+            sendOsmAnd(self._tracker, self._td)
+
+
+@login_required
+def tracker_export(request, id):
+    tracker = Tracker.objects.get(id=id)
+    data = TrackerData.objects.filter(tracker=tracker)
+    for td in data:
+        sendOsmAnd(tracker, td)
+
+    return render(request, 'towit/tracker/export_ok.html', {'tracker': tracker})
+
+
+def sendOsmAnd(tracker, td):
+    req_str = '{}?id={}&lat={}&lon={}&speed={}&batt={}&timestamp={}&heading={}'.format(
+        tracker.traccar_url,
+        tracker.imei,
+        td.latitude,
+        td.longitude,
+        td.speed/1.852,  # Km/h to Nuts
+        int(123-123/(1+(td.battery/3.7)**80)**0.165),
+        int(td.timestamp.timestamp()),
+        td.heading)
+    print(req_str)
+
+    try:
+        r = requests.get(req_str)
+        if r.status_code != 200:
+            print('Status code != 200!')
+    except Exception as err:
+        print(err)
+
+
+@login_required
+def tracker_detail(request, id):
+    return render(request, 'towit/tracker/tracker_data.html', getTrackerDetails(id, 30))
+
+
+@login_required
+def tracker_detail_n(request, id, n):
+    return render(request, 'towit/tracker/tracker_data.html', getTrackerDetails(id, n))
+
+
+def getTrackerDetails(id, n):
+    tracker = Tracker.objects.get(id=id)
+
+    try:
+        data = TrackerData.objects.filter(
+            tracker=tracker).order_by("-timestamp")[:n]
+
+        if (data[0].mode == 0):  # Powered
+            max_elapsed_time = 80*tracker.Tint
+        else:
+            max_elapsed_time = 80*tracker.TintB
+
+        elapsed_time = (datetime.now().replace(tzinfo=pytz.timezone(
+            settings.TIME_ZONE)) - data[0].timestamp).total_seconds()
+
+        print("elapsed_time: %is" % elapsed_time)
+        print("max_elapsed_time: %is" % max_elapsed_time)
+
+        online = elapsed_time < max_elapsed_time
+    except Exception as err:
+        raise err
+    return {'tracker': tracker,
+            'data': data[0],
+            'online': online,
+            'history': data}
+
+
+@login_required
+def debug_detail(request, id):
+    tracker = Tracker.objects.get(id=id)
+
+    try:
+        data = TrackerDebugData.objects.filter(
+            tracker=tracker).order_by("-timestamp")[:50]
+
+    except Exception as err:
+        raise err
+
+    return render(request, 'towit/tracker/debug_data.html', {'tracker': tracker,
+                                                             'data': data})
+
+
+@login_required
+def trackers_data(request):
+    trackers = Tracker.objects.all()
+    data = []
+    for tracker in trackers:
+        try:
+            td = TrackerData.objects.filter(
+                tracker=tracker).order_by("-timestamp")[0]
+            if (td.mode == 0):  # Powered
+                max_elapsed_time = 80*tracker.Tint
+            else:
+                max_elapsed_time = 80*tracker.TintB
+
+            elapsed_time = (datetime.now().replace(tzinfo=pytz.timezone(
+                settings.TIME_ZONE)) - td.timestamp).total_seconds()
+
+            print("elapsed_time: %is" % elapsed_time)
+            print("max_elapsed_time: %is" % max_elapsed_time)
+
+            online = elapsed_time < max_elapsed_time
+
+            data.append({
+                'tracker': td.tracker.id,
+                'timestamp': td.timestamp,
+                'latitude': td.latitude,
+                'longitude': td.longitude,
+                'speed': td.speed,
+                'heading': td.heading,
+                'battery': td.battery,
+                'mode': td.mode,
+                'power': td.power,
+                'online': online
+            })
+
+        except Exception as err:
+            print(err)
+    return JsonResponse({'data': data})
+
+
+@login_required
+def trackers(request):
+    trackers = Tracker.objects.all()
+    return render(request, 'towit/tracker/trackers.html', {'trackers': trackers})
+
+
+@login_required
+def trackers_table(request):
+    trcks = Tracker.objects.all()
+    trackers = []
+    for tracker in trcks:
+        try:
+            td = TrackerData.objects.filter(
+                tracker=tracker).order_by("-timestamp")[0]
+            if (td.mode == 0):  # Powered
+                max_elapsed_time = 80*tracker.Tint
+            else:
+                max_elapsed_time = 80*tracker.TintB
+
+            elapsed_time = (datetime.now().replace(tzinfo=pytz.timezone(
+                settings.TIME_ZONE)) - td.timestamp).total_seconds()
+
+            print("elapsed_time: %is" % elapsed_time)
+            print("max_elapsed_time: %is" % max_elapsed_time)
+
+            online = elapsed_time < max_elapsed_time
+
+            trackers.append({
+                'id': td.tracker.id,
+                'updated': td.timestamp,
+                'bat': int(td.battery*100)/100.,
+                'mode': td.mode,
+                'online': online,
+                'lessee_name': td.tracker.lessee_name,
+                'trailer_description': td.tracker.trailer_description,
+            })
+
+        except Exception as err:
+            print(err)
+    return render(request, 'towit/tracker/trackers_table.html', {'trackers': trackers})
 
 
 @csrf_exempt
@@ -246,17 +538,17 @@ def tracker_upload(request):
                 print("Cell ID: %i" % cellid)
 
                 td = TrackerUpload(tracker=tracker,
-                                 timestamp=datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
-                                 sequence=seq,
-                                 charging=charging,
-                                 battery=vbat,
-                                 wur=wur,
-                                 wdgc=wdgc,
-                                 source=source,
-                                 mcc=mcc,
-                                 mnc=mnc,
-                                 lac=lac,
-                                 cellid=cellid)
+                                   timestamp=datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
+                                   sequence=seq,
+                                   charging=charging,
+                                   battery=vbat,
+                                   wur=wur,
+                                   wdgc=wdgc,
+                                   source=source,
+                                   mcc=mcc,
+                                   mnc=mnc,
+                                   lac=lac,
+                                   cellid=cellid)
 
             if source == 'GPS':
                 lat = float(data[7])
@@ -269,17 +561,17 @@ def tracker_upload(request):
                 print("precision: %i" % precision)
 
                 td = TrackerUpload(tracker=tracker,
-                                 timestamp=datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
-                                 sequence=seq,
-                                 charging=charging,
-                                 battery=vbat,
-                                 wur=wur,
-                                 wdgc=wdgc,
-                                 source=source,
-                                 latitude=lat,
-                                 longitude=lon,
-                                 speed=speed,
-                                 precision=precision)
+                                   timestamp=datetime.now().replace(tzinfo=pytz.timezone(settings.TIME_ZONE)),
+                                   sequence=seq,
+                                   charging=charging,
+                                   battery=vbat,
+                                   wur=wur,
+                                   wdgc=wdgc,
+                                   source=source,
+                                   latitude=lat,
+                                   longitude=lon,
+                                   speed=speed,
+                                   precision=precision)
 
         except:
             return HttpResponse("Malformed message!")
@@ -292,82 +584,3 @@ def tracker_upload(request):
             'TGPS': tracker.TGPS,
             'Tsend': tracker.Tsend,
         })
-
-
-class SendOsmAndAfterResponse(HttpResponse):
-
-    def __init__(self, tracker, td, content=b'',  *args, **kwargs):
-        super().__init__(content=content, *args, **kwargs)
-        self._tracker = tracker
-        self._td = td
-
-    def close(self):
-        super(SendOsmAndAfterResponse, self).close()
-        # do whatever you want, this is the last codepoint in request handling
-        if self._tracker.feed_traccar:
-            sendOsmAnd(self._tracker, self._td)
-
-
-@login_required
-def tracker_export(request, id):
-    tracker = Tracker.objects.get(id=id)
-    data = TrackerData.objects.filter(tracker=tracker)
-    for td in data:
-        sendOsmAnd(tracker, td)
-
-    return render(request, 'towit/tracker/export_ok.html', {'tracker': tracker})
-
-
-def sendOsmAnd(tracker, td):
-    req_str = '{}?id={}&lat={}&lon={}&speed={}&batt={}&timestamp={}&heading={}'.format(
-        tracker.traccar_url,
-        tracker.imei,
-        td.latitude,
-        td.longitude,
-        td.speed/1.852,  # Km/h to Nuts
-        int(123-123/(1+(td.battery/3.7)**80)**0.165),
-        int(td.timestamp.timestamp()),
-        td.heading)
-    print(req_str)
-
-    try:
-        r = requests.get(req_str)
-        if r.status_code != 200:
-            print('Status code != 200!')
-    except Exception as err:
-        print(err)
-
-
-@login_required
-def tracker_detail(request, id):
-    tracker = Tracker.objects.get(id=id)
-
-    try:
-        data = TrackerData.objects.filter(
-            tracker=tracker).order_by("-timestamp")[:30]
-
-        if (data[0].mode == 0):  # Powered
-            max_elapsed_time = 80*tracker.Tint
-        else:
-            max_elapsed_time = 80*tracker.TintB
-
-        elapsed_time = (datetime.now().replace(tzinfo=pytz.timezone(
-            settings.TIME_ZONE)) - data[0].timestamp).total_seconds()
-
-        print("elapsed_time: %is" % elapsed_time)
-        print("max_elapsed_time: %is" % max_elapsed_time)
-
-        online = elapsed_time < max_elapsed_time
-    except Exception as err:
-        raise err
-
-    return render(request, 'towit/tracker/tracker_data.html', {'tracker': tracker,
-                                                               'data': data[0],
-                                                               'online': online,
-                                                               'history': data})
-
-
-@login_required
-def trackers(request):
-    trackers = Tracker.objects.all()
-    return render(request, 'towit/tracker/trackers.html', {'trackers': trackers})

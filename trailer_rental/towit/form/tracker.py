@@ -105,6 +105,8 @@ class TrackerForm(ModelForm):
                         AppendedText('TintB', "min"),
                         css_class='col-4'
                     ),
+            Fieldset(
+                'Trailer data',
                     Div(
                         AppendedText('TsendB', "min"),
                         css_class='col-4'
@@ -114,6 +116,21 @@ class TrackerForm(ModelForm):
                         css_class='col-4'
                     ),
                     css_class='row'
+                )
+            ),
+            Fieldset(
+                'Trailer data',
+                Div(
+                    'trailer_description',
+                    css_class='col-12'
+                ),
+                Div(
+                    'trailer_bin_number',
+                    css_class='col-12'
+                ),
+                Div(
+                    'lessee_name',
+                    css_class='col-12'
                 )
             ),
             ButtonHolder(

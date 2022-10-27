@@ -22,6 +22,7 @@ class Tracker(models.Model):
     # Configuration parameters
     pendingConfigs = models.BinaryField(default=b'')
     Tcheck = models.IntegerField(default=15)
+
     class Modes(models.IntegerChoices):
         Keepalived = 0
         Tracking = 1
@@ -29,10 +30,14 @@ class Tracker(models.Model):
     Tint = models.IntegerField(default=60)
     TintB = models.IntegerField(default=360)
     TGPS = models.IntegerField(default=10)
-    TGPSB = models.IntegerField(default=10)
+    TGPSB = models.IntegerField(default=5)
     SMART = models.BooleanField(default=False)
-    Tsend = models.IntegerField(default=10)
-    TsendB = models.IntegerField(default=10)
+    Tsend = models.IntegerField(default=5)
+    TsendB = models.IntegerField(default=3)
+    # Tracker and lessee Data
+    trailer_description = models.CharField(max_length=100, default="")
+    trailer_bin_number = models.CharField(max_length=50, default="")
+    lessee_name = models.CharField(max_length=50, default="")
 
     def get_absolute_url(self):
         return reverse('tracker_detail', kwargs={'id': self.id})
@@ -84,3 +89,43 @@ class TrackerUpload(models.Model):
     mnc = models.IntegerField(blank=True, null=True)
     lac = models.IntegerField(blank=True, null=True)
     cellid = models.IntegerField(blank=True, null=True)
+
+
+class TrackerDebugData(models.Model):
+    tracker = models.ForeignKey(Tracker,
+                                on_delete=models.CASCADE,
+                                related_name='debug_tracker')
+    timestamp = models.DateTimeField(default=datetime.now)
+    battery = models.FloatField(blank=True, null=True)
+    mode = models.IntegerField(blank=True, null=True)
+    sequence = models.IntegerField(blank=True, null=True)
+
+
+class TrackerDebugGPS(models.Model):
+    tdd = models.OneToOneField(TrackerDebugData,
+                               on_delete=models.CASCADE,
+                               primary_key=True)
+    sats = models.IntegerField(blank=True, null=True)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    speed = models.FloatField(blank=True, null=True)
+    heading = models.IntegerField(blank=True, null=True)
+    gps_delay = models.IntegerField(blank=True, null=True)
+    lte_delay = models.IntegerField(blank=True, null=True)
+
+
+class TrackerDebugStartup(models.Model):
+    tdd = models.OneToOneField(TrackerDebugData,
+                               on_delete=models.CASCADE,
+                               primary_key=True)
+    wake_reason = models.IntegerField(blank=True, null=True)
+    reset_cause = models.IntegerField(blank=True, null=True)
+    lte_delay = models.IntegerField(blank=True, null=True)
+
+
+class TrackerDebugError(models.Model):
+    tdd = models.OneToOneField(TrackerDebugData,
+                               on_delete=models.CASCADE,
+                               primary_key=True)
+    gps_delay = models.IntegerField(blank=True, null=True)
+    lte_delay = models.IntegerField(blank=True, null=True)

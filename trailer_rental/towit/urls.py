@@ -4,13 +4,16 @@ from django.contrib.auth import views as auth_views
 from towit.views import *
 from towit.view.tracker import (
     trackers,
-    TrackerCreateView,
+    tracker_data, TrackerCreateView,
     TrackerUpdateView,
-    delete_tracker,
-    tracker_data,
+    tracker_detail_n, delete_tracker,
+    trackers_data,
     tracker_upload,
     tracker_detail,
-    tracker_export)
+    tracker_export,
+    tracker_debug,
+    debug_detail,
+    trackers_table)
 
 urlpatterns = [
     # Entry point
@@ -71,8 +74,14 @@ urlpatterns = [
          TrackerUpdateView.as_view(), name='update_tracker'),
     path('delete_tracker/<int:id>',  delete_tracker, name='delete_tracker'),
     path('tracker_detail/<int:id>',  tracker_detail, name='tracker_detail'),
-    path('trackers/',  trackers, name='trackers'),
+    path('tracker_detail/<int:id>/<int:n>',
+         tracker_detail_n, name='tracker_detail_n'),
+    path('trackers_map/',  trackers, name='trackers'),
+    path('trackers/',  trackers_table, name='trackers_table'),
+    path('trackers_map/data', trackers_data, name='trackers_json'),
     path('tracker_data', tracker_data, name='tracker_data'),
+    path('tracker_debug', tracker_debug, name='tracker_debug'),
+    path('debug_detail/<int:id>',  debug_detail, name='debug_detail'),
     path('upload_data', tracker_upload, name='upload_data'),
     path('tracker_export/<int:id>', tracker_export, name='tracker_export'),
 ]
