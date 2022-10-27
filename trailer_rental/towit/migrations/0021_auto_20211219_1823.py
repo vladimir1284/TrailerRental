@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='tracker',
-            name='MAX_ERRORS',
+            name='Mode',
             field=models.IntegerField(default=3),
         ),
         migrations.AddField(
@@ -77,6 +77,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='trackerdata',
             name='timestamp',
-            field=models.DateTimeField(default=datetime.datetime(2021, 12, 19, 18, 23, 20, 681449)),
+            field=models.DateTimeField(default=datetime.datetime(
+                2021, 12, 19, 18, 23, 20, 681449)),
         ),
     ]
