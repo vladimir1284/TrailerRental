@@ -1,4 +1,5 @@
 import pytz
+from typing import List
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView
 from towit.form.tracker import TrackerForm
@@ -355,7 +356,38 @@ def sendOsmAnd(tracker, td):
 
 @login_required
 def tracker_detail(request, id):
+    tracker = Tracker.objects.get(id=id)
+    data_v1 = TrackerUpload.objects.filter(
+        tracker=tracker).order_by("-timestamp")
+    if data_v1:
+        return render(request, 'towit/tracker/tracker_upload.html', getTrackerUpload(tracker, data_v1[:30]))
+
     return render(request, 'towit/tracker/tracker_data.html', getTrackerDetails(id, 30))
+
+
+def getTrackerUpload(tracker, data: List[TrackerUpload]):
+    for item in data:
+        if item.latitude is None:
+            url = "http://opencellid.org/cell/get?key=pk.5b6bc57dbacf5078433585d1ddba0fa6&mcc={}&mnc={}&lac={}&cellid={}&format=json".format(
+                item.mcc,
+                item.mnc,
+                item.lac,
+                item.cellid
+            )
+            response = requests.get(url)
+            if response.status_code == 200:
+                print("Location data downloaded for Tracker {} at {}".format(
+                    tracker.id, item.timestamp))
+                json_data = response.json()
+                item.latitude = json_data['lat']
+                item.longitude = json_data['lon']
+                item.speed = 0
+                item.save()
+
+    return {'tracker': tracker,
+            'data': data[0],
+            'online': True,
+            'history': data}
 
 
 @login_required
@@ -511,7 +543,7 @@ def tracker_upload(request):
                 return HttpResponse("Unknown IMEI %s!" % imei)
 
             seq = int(data[1])
-            charging = bool(data[2])
+            charging = bool(int(data[2]))
             vbat = int(data[3])/1000.  # Volts
             wur = int(data[4])  # WakeUp reason
             wdgc = int(data[5])  # Watchdog resets count

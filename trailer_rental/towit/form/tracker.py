@@ -12,7 +12,8 @@ class TrackerForm(ModelForm):
         model = Tracker
         fields = ('owner', 'imei',  'device_password',  'device_id', 'traccar_url', 'feed_traccar',
                   'phone_password', 'Tcheck', 'Mode', 'Tint', 'TintB',
-                  'TGPS', 'TGPSB', 'SMART', 'Tsend', 'TsendB')
+                  'TGPS', 'TGPSB', 'SMART', 'Tsend', 'TsendB', 'trailer_description',
+                  'trailer_bin_number', 'lessee_name')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -118,7 +119,7 @@ class TrackerForm(ModelForm):
                 css_class='row'
             ),
             Fieldset(
-                'Tracker data',
+                'Trailer data',
                 Div(
                     'trailer_description',
                     css_class='col-12'
