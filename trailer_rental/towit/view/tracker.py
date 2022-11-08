@@ -2,7 +2,7 @@ import pytz
 from typing import List
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView
-from towit.form.tracker import TrackerForm
+from towit.form.tracker import TrackerForm, TrackerLesseeForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
@@ -360,6 +360,12 @@ def sendOsmAnd(tracker, td):
 @login_required
 def tracker_detail(request, id):
     tracker = Tracker.objects.get(id=id)
+    if request.method == 'POST':
+        form = TrackerLesseeForm(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+            tracker.lessee_name = form.cleaned_data['lessee_name']
+            tracker.save()
     data_v1 = TrackerUpload.objects.filter(
         tracker=tracker).order_by("-timestamp")
     if data_v1:

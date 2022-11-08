@@ -7,6 +7,12 @@ from crispy_forms.bootstrap import PrependedText, AppendedText
 from towit.models import Status
 
 
+class TrackerLesseeForm(ModelForm):
+    class Meta:
+        model = Tracker
+        fields = ('lessee_name',)
+
+
 class TrackerForm(ModelForm):
     class Meta:
         model = Tracker
