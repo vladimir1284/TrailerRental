@@ -13,12 +13,12 @@
 {% block map %}
     <div id ="map"></div>
     Last update: <b class="datetime"
-    style="background: {% if online == True %} #b9ec94 {% else %} #FF0000 {% endif %};">{{ data.timestamp|utc|date:'m/d/Y h:i:s A' }}</b>
+    style="background: {% if online %} #b9ec94 {% else %} #FF0000 {% endif %};">{{ data.timestamp|utc|date:'m/d/Y h:i:s A' }}</b>
     <script>
          // Creating map options
          var mapOptions = {
-         center: [{{ data.latitude }}, {{ data.longitude }}],
-         zoom: 6
+         //center: [{{ data.latitude }}, {{ data.longitude }}],
+         zoom: 12
          }
          
          // Creating a map object
@@ -30,41 +30,13 @@
          // Adding layer to the map
          map.addLayer(layer);
          
-         var marker = L.marker([{{ data.latitude }}, {{ data.longitude }}]).addTo(map);
-         
-         function update_map(lat, lon, speed, dt){
-             // Update MAP
-            if (marker != undefined) {
-              map.removeLayer(marker);
-            };
-            marker = L.marker([lat, lon]).addTo(map);
-            map.panTo(new L.LatLng(lat, lon));
-            // Update data
-            document.getElementById("speed").innerHTML=speed
-            document.getElementById("lat").innerHTML=lat
-            document.getElementById("lon").innerHTML=lon
-            document.getElementById("datetime").innerHTML=dt
-         }
-
-         function uploadHistory() {
-            let confirmAction = confirm("Do you want to export all historical data to Traccar?");
-            if (confirmAction) {
-                 window.location = "/towit/tracker_export/{{ tracker.id }}";
-            }
-        }
+         var marker = L.marker([0,0]).addTo(map);
     </script>
 {% endblock %}
 {% block table %}
     <hr class="mt-0 mb-4">
     <h4 class="mt-3">
     History </b>
-    <button onclick="uploadHistory()"
-            class="btn btn-primary data-toggle="
-            tooltip
-            data-placement="left"
-            title="Copy to clipboard">
-        <i class="fa fa-share"></i>
-    </button>
     <a href="/towit/tracker_detail/{{ tracker.id }}/100">
         <i class="fa fa-search"></i>
     </a>
@@ -80,9 +52,6 @@
                 <tr>
                     <th class="th-sm">Seq</th>
                     <th class="th-sm">Datetime</th>
-                    <!-- <th class="th-sm">Latitude</th>
-                <th class="th-sm">Longitude</th>
-                <th class="th-sm">Speed</th> -->
                     <th class="th-sm">Vbat</th>
                 </tr>
             </thead>
@@ -90,44 +59,126 @@
                 {% for element in history %}
                     <tr>
                         <td>
-                        {{ element.sequence }} </a>
-                    </td>
-                    <td>
-                        <button class="datetime"
-                                onclick="update_map({{ element.latitude }}, {{ element.longitude }}, {{ element.speed }}, '{{ element.timestamp }}')">
-                            {{ element.timestamp|utc|date:'m/d/Y h:i:s A' }}
-                        </button>
-                    </td>
-                    <!-- <td>{{ element.latitude }}</td>
-                    <td>{{ element.longitude }}</td>
-                    <td>{{ element.speed }}</td> -->
-                    <td style="background: {% if element.charging %} #b9ec94 {% else %} #f5ada1 {% endif %};">{{ element.battery }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-<div class="col-6">
-    <b>Datetime: </b>
-    <div class="datetime" id="datetime">{{ data.timestamp|utc|date:'m/d/Y h:i:s A' }}</div>
-    <b>Latitude: </b>
-    <div id="lat">{{ data.latitude }}</div>
-    <b>Longitude: </b>
-    <div id="lon">{{ data.longitude }}</div>
-    <b>Speed: </b>
-    <div id="speed">{{ data.speed }}</div>
-</div>
+                            <a>{{ element.sequence }}</a>
+                            {% if element.source == "LTE" %}
+                                <i class="fa fa-signal"></i>
+                            {% else %}
+                                <i class="fa fa-location-arrow"></i>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="datetime" onclick="update_map({{ forloop.counter0 }})">
+                                {{ element.timestamp|utc|date:'m/d/Y h:i:s A' }}
+                            </button>
+                        </td>
+                        <td style="background: {% if element.charging %} #b9ec94 {% else %} #f5ada1 {% endif %};">{{ element.battery }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="col-6">
+        <b>Datetime: </b>
+        <div class="datetime" id="datetime">{{ data.timestamp|utc|date:'m/d/Y h:i:s A' }}</div>
+        <b>Latitude: </b>
+        <div id="lat">{{ data.latitude }}</div>
+        <b>Longitude: </b>
+        <div id="lon">{{ data.longitude }}</div>
+        <b>Speed: </b>
+        <div id="speed">{{ data.speed }}</div>
+    </div>
 </div>
 <script>
-        function updateTZ() {
-            let elements = document.getElementsByClassName("datetime");
-            for (let element of elements){
-                let date = new Date(element.innerHTML + ' UTC');
-                console.log(date);
-                element.innerHTML = date.format("mmm dd, h:MMtt");
-            }
-        }
+    const history = [
+        {% for item in history %}
+            {
+                sequence: {{item.sequence}},
+                battery: {{item.battery}},
+                source: "{{item.source}}",
+                latitude: "{{item.latitude}}",
+                longitude: "{{item.longitude}}",
+                speed: "{{item.speed}}",
+                timestamp: "{{item.timestamp|utc|date:'m/d/Y h:i:s A'}}",
+                charging: "{{item.charging}}",
+                mcc: "{{item.mcc}}",
+                mnc: "{{item.mnc}}",
+                lac: "{{item.lac}}",
+                cellid: "{{item.cellid}}"
+            },
+        {% endfor %}
+    ];
+    
+    var dataArray = [];
+    var lteIdex = [];
+    
+    function updateHistory(){
+        let promisesArray = [];
+        history.forEach((element, index)=>{
+            if (element.source == "LTE"){
+                const qry_str = 'http://opencellid.org/cell/get?key=pk.5b6bc57dbacf5078433585d1ddba0fa6&'
+                + `mcc=${element.mcc}&`
+                + `mnc=${element.mnc}&`
+                + `lac=${element.lac}&`
+                + `cellid=${element.cellid}&`
+                + 'format=json';
+                //console.log(qry_str)
+                promise = fetch(qry_str).then(response => {
+                    // indicates whether the response is successful (status code 200-299) or not
+                    if (!response.ok) {
+                      throw new Error(`Request failed with status ${reponse.status}`)
+                    }
+                    return response.json()
+                });
+                promisesArray.push(promise);
+                lteIdex.push(index);
+                element.speed = 0;
+            } else {
+                element.speed = +(element.speed);
+                element.latitude = +(element.latitude);
+                element.longitude = +(element.longitude);
+            }    
+            element.timestamp = new Date(element.timestamp + ' UTC');
+            element.charging = (element.charging == "True")? true: false;
+            dataArray.push(element);          
+        });
 
-        updateTZ();
+        Promise.all(promisesArray).then((values) => {
+            values.forEach((value, index) => {
+                console.log(value);     
+                dataArray[lteIdex[index]].latitude = value.lat;
+                dataArray[lteIdex[index]].longitude = value.lon;
+            });        
+            console.log(dataArray);
+            update_map(0);
+        });
+        
+    }
+    updateHistory();
+    
+
+    function updateTZ() {
+        let elements = document.getElementsByClassName("datetime");
+        for (let element of elements){
+            let date = new Date(element.innerHTML + ' UTC');
+            console.log(date);
+            element.innerHTML = date.format("mmm dd, h:MMtt");
+        }
+    }
+
+         
+    function update_map(index){
+        // Update MAP
+       if (marker != undefined) {
+         map.removeLayer(marker);
+       };
+       marker = L.marker([dataArray[index].latitude, dataArray[index].longitude]).addTo(map);
+       map.panTo(new L.LatLng(dataArray[index].latitude, dataArray[index].longitude));
+       // Update data
+       document.getElementById("speed").innerHTML=dataArray[index].speed
+       document.getElementById("lat").innerHTML=dataArray[index].latitude
+       document.getElementById("lon").innerHTML=dataArray[index].longitude
+       document.getElementById("datetime").innerHTML=dataArray[index].timestamp.format("mmm dd, h:MMtt");
+    }
+    updateTZ();
 </script>
 {% endblock %}

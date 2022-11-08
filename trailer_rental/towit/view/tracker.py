@@ -360,12 +360,12 @@ def tracker_detail(request, id):
     data_v1 = TrackerUpload.objects.filter(
         tracker=tracker).order_by("-timestamp")
     if data_v1:
-        return render(request, 'towit/tracker/tracker_upload.html', getTrackerUpload(tracker, data_v1[:30]))
+        return render(request, 'towit/tracker/tracker_upload.html', getTrackerUpload(id, 30))
 
     return render(request, 'towit/tracker/tracker_data.html', getTrackerDetails(id, 30))
 
 
-def getTrackerUpload(tracker, data: List[TrackerUpload]):
+""" def getTrackerUpload(tracker, data: List[TrackerUpload]):
     for item in data:
         if item.latitude is None:
             url = "http://opencellid.org/cell/get?key=pk.5b6bc57dbacf5078433585d1ddba0fa6&mcc={}&mnc={}&lac={}&cellid={}&format=json".format(
@@ -388,11 +388,39 @@ def getTrackerUpload(tracker, data: List[TrackerUpload]):
             'data': data[0],
             'online': True,
             'history': data}
+ """
 
 
 @login_required
 def tracker_detail_n(request, id, n):
     return render(request, 'towit/tracker/tracker_data.html', getTrackerDetails(id, n))
+
+
+def getTrackerUpload(id, n):
+    tracker = Tracker.objects.get(id=id)
+
+    try:
+        data = TrackerUpload.objects.filter(
+            tracker=tracker).order_by("-timestamp")[:n]
+
+        if (data[0].charging):  # Powered
+            max_elapsed_time = 80*tracker.Tint
+        else:
+            max_elapsed_time = 80*tracker.TintB
+
+        elapsed_time = (datetime.now().replace(tzinfo=pytz.timezone(
+            settings.TIME_ZONE)) - data[0].timestamp).total_seconds()
+
+        print("elapsed_time: %is" % elapsed_time)
+        print("max_elapsed_time: %is" % max_elapsed_time)
+
+        online = elapsed_time < max_elapsed_time
+    except Exception as err:
+        raise err
+    return {'tracker': tracker,
+            'data': data[0],
+            'online': online,
+            'history': data}
 
 
 def getTrackerDetails(id, n):
