@@ -23,6 +23,9 @@ import json
 from requests.auth import HTTPBasicAuth
 from ..config import pwd
 
+from .bat_percent import vbat2percent
+
+
 # Authentication
 usr = 'apikey'
 
@@ -403,10 +406,13 @@ def getTrackerUpload(id, n):
         data = TrackerUpload.objects.filter(
             tracker=tracker).order_by("-timestamp")[:n]
 
+        for i, item in enumerate(data):
+            data[i].battery = vbat2percent(item.battery)
+
         if (data[0].charging):  # Powered
-            max_elapsed_time = 80*tracker.Tint
+            max_elapsed_time = 4800
         else:
-            max_elapsed_time = 80*tracker.TintB
+            max_elapsed_time = 80*tracker.Tint
 
         elapsed_time = (datetime.now().replace(tzinfo=pytz.timezone(
             settings.TIME_ZONE)) - data[0].timestamp).total_seconds()
@@ -429,6 +435,9 @@ def getTrackerDetails(id, n):
     try:
         data = TrackerData.objects.filter(
             tracker=tracker).order_by("-timestamp")[:n]
+
+        for i, item in enumerate(data):
+            data[i].battery = vbat2percent(item.battery)
 
         if (data[0].mode == 0):  # Powered
             max_elapsed_time = 80*tracker.Tint
@@ -493,7 +502,7 @@ def trackers_data(request):
                 'longitude': td.longitude,
                 'speed': td.speed,
                 'heading': td.heading,
-                'battery': td.battery,
+                'battery': vbat2percent(td.battery),
                 'mode': td.mode,
                 'power': td.power,
                 'online': online
@@ -516,12 +525,24 @@ def trackers_table(request):
     trackers = []
     for tracker in trcks:
         try:
-            td = TrackerData.objects.filter(
-                tracker=tracker).order_by("-timestamp")[0]
-            if (td.mode == 0):  # Powered
-                max_elapsed_time = 80*tracker.Tint
+            # V1.0
+            data_v1 = TrackerUpload.objects.filter(
+                tracker=tracker).order_by("-timestamp")
+            if data_v1:
+                td = data_v1[0]
+                td.mode = {True: 0, False: 1}[td.charging]
+                if (td.charging):  # Powered
+                    max_elapsed_time = 4800
+                else:
+                    max_elapsed_time = 80*tracker.Tint
             else:
-                max_elapsed_time = 80*tracker.TintB
+                # V0.1
+                td = TrackerData.objects.filter(
+                    tracker=tracker).order_by("-timestamp")[0]
+                if (td.mode == 0):  # Powered
+                    max_elapsed_time = 80*tracker.Tint
+                else:
+                    max_elapsed_time = 80*tracker.TintB
 
             elapsed_time = (datetime.now().replace(tzinfo=pytz.timezone(
                 settings.TIME_ZONE)) - td.timestamp).total_seconds()
@@ -534,7 +555,7 @@ def trackers_table(request):
             trackers.append({
                 'id': td.tracker.id,
                 'updated': td.timestamp,
-                'bat': int(td.battery*100)/100.,
+                'bat': int(vbat2percent(td.battery)*100)/100.,
                 'mode': td.mode,
                 'online': online,
                 'lessee_name': td.tracker.lessee_name,

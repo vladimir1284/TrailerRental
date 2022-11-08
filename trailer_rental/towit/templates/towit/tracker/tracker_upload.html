@@ -8,10 +8,43 @@
           crossorigin=""/>
     <script type="text/javascript" src="{% static '/js/leaflet.js' %}"></script>
     <script type="text/javascript" src="{% static '/js/date.format.js' %}"></script>
-    <style>#map { height: 450px; }</style>
+    <style>
+        #map { 
+            height: 450px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .lds-dual-ring {
+            display: inline-block;
+            width: 160px;
+            height: 160px;
+          }
+          .lds-dual-ring:after {
+            content: " ";
+            display: block;
+            width: 128px;
+            height: 128px;
+            margin: 16px;
+            border-radius: 50%;
+            border: 6px solid #3285D1;
+            border-color: #3285D1 transparent #3285D1 transparent;
+            animation: lds-dual-ring 1.2s linear infinite;
+          }
+          @keyframes lds-dual-ring {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(360deg);
+            }
+          }          
+    </style>
 {% endblock %}
 {% block map %}
-    <div id ="map"></div>
+    <div id ="map">
+        <div class="lds-dual-ring"></div>
+    </div>
     Last update: <b class="datetime"
     style="background: {% if online %} #b9ec94 {% else %} #FF0000 {% endif %};">{{ data.timestamp|utc|date:'m/d/Y h:i:s A' }}</b>
     <script>
@@ -71,7 +104,9 @@
                                 {{ element.timestamp|utc|date:'m/d/Y h:i:s A' }}
                             </button>
                         </td>
-                        <td style="background: {% if element.charging %} #b9ec94 {% else %} #f5ada1 {% endif %};">{{ element.battery }}</td>
+                        <td style="background: {% if element.charging %} #b9ec94 {% else %} #f5ada1 {% endif %};">
+                            {{ element.battery|floatformat:"0" }}%
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
