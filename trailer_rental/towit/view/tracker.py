@@ -146,7 +146,7 @@ def delete_tracker(request, id):
 @csrf_exempt
 def get_tracker_data(request, id):
     try:
-        tracker_data = TrackerData.objects.filter(id__gt=int(id))[:600]
+        tracker_data = TrackerData.objects.filter(id__gt=int(id)).order_by("-id")[:600]
     except TrackerData.DoesNotExist:
         return JsonResponse({'error': 'Tracker data not found.'}, status=404)
     
@@ -594,7 +594,7 @@ def trackers_table(request):
 @csrf_exempt
 def get_tracker_upload(request, id):
     try:
-        tracker_upload = TrackerUpload.objects.filter(id__gt=int(id))[:600]
+        tracker_upload = TrackerUpload.objects.filter(id__gt=int(id)).order_by("-id")[:600]
     except TrackerUpload.DoesNotExist:
         return JsonResponse({'error': 'Tracker data not found.'}, status=404)
     
