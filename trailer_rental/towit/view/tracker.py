@@ -1,5 +1,4 @@
-import pytz
-from typing import List
+from django.core import serializers
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView
 from towit.form.tracker import TrackerForm, TrackerLesseeForm
@@ -144,6 +143,15 @@ def delete_tracker(request, id):
 
  # Incoming data from a tracker
 
+@csrf_exempt
+def get_tracker_data(request, id):
+    try:
+        tracker_data = TrackerData.objects.filter(id__gt=int(id))[:600]
+    except TrackerData.DoesNotExist:
+        return JsonResponse({'error': 'Tracker data not found.'}, status=404)
+    
+    tracker_data = json.loads(serializers.serialize('json',tracker_data))
+    return JsonResponse(tracker_data,safe=False)
 
 @csrf_exempt
 def tracker_data(request):
@@ -582,6 +590,16 @@ def trackers_table(request):
             print(err)
     return render(request, 'towit/tracker/trackers_table.html', {'trackers': trackers})
 
+
+@csrf_exempt
+def get_tracker_upload(request, id):
+    try:
+        tracker_upload = TrackerUpload.objects.filter(id__gt=int(id))[:600]
+    except TrackerUpload.DoesNotExist:
+        return JsonResponse({'error': 'Tracker data not found.'}, status=404)
+    
+    tracker_upload = json.loads(serializers.serialize('json',tracker_upload))
+    return JsonResponse(tracker_upload,safe=False)
 
 @csrf_exempt
 def tracker_upload(request):
