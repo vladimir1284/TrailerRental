@@ -202,6 +202,16 @@ def tracker_data(request):
                          power=power_modes[mode],
                          mode=mode)
         td.save()
+        # Forward to towit page
+        charging = mode
+        wur = 0  # WakeUp reason
+        wdgc = 0  # Watchdog resets count
+        source = "GPS"  # LTE or GPS
+        precision = 20
+
+        msg = f"{imei},{seq},{charging},{int(vbat*1000)},{wur},{wdgc},{source},{lat},{lon},{speed},{precision}"
+        requests.post("http://towithouston.com/erp/rent/tracker-upload", data=msg)
+
         return HttpResponse("ok")
 
 # Incoming debug data from a tracker
@@ -585,6 +595,8 @@ def tracker_upload(request):
         try:
             msg = request.body.decode()
             print(msg)
+            # Make a post request to a remote url using the same payload
+            requests.post("http://towithouston.com/erp/rent/tracker-upload", data=msg)
         except:
             return HttpResponse("Wrong codification!")
         try:
