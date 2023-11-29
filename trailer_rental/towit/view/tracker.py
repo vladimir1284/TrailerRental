@@ -210,7 +210,7 @@ def tracker_data(request):
         precision = 20
 
         msg = f"{imei},{seq},{charging},{int(vbat*1000)},{wur},{wdgc},{source},{lat},{lon},{speed},{precision}"
-        requests.post("http://towithouston.com/erp/rent/tracker-upload", data=msg)
+        # requests.post("http://towithouston.com/erp/rent/tracker-upload", data=msg)
 
         return HttpResponse("ok")
 
@@ -596,7 +596,7 @@ def tracker_upload(request):
             msg = request.body.decode()
             print(msg)
             # Make a post request to a remote url using the same payload
-            requests.post("http://towithouston.com/erp/rent/tracker-upload", data=msg)
+            # requests.post("http://towithouston.com/erp/rent/tracker-upload", data=msg)
         except:
             return HttpResponse("Wrong codification!")
         try:
